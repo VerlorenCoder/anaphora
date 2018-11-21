@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="960.0" stylesheets="@../css/stylesheet.css" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MainController">
+   <children>
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="640.0" prefWidth="260.0" styleClass="left-panel">
+         <children>
+            <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="85.0" prefWidth="260.0" styleClass="left-header" text="PANEL UŻYTKOWNIKA" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+               <font>
+                  <Font name="Book Antiqua" size="25.0" />
+               </font>
+            </Label>
+            <ProgressBar fx:id="progressBar" prefHeight="25.0" prefWidth="260.0" progress="0.0" />
+            <HBox fx:id="menuButton" onMouseEntered="#menuMouseEntered" onMouseExited="#menuMouseExited" onMousePressed="#menuMousePressed" prefWidth="200.0">
+               <children>
+                  <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/option_home.jpg" />
+                     </image>
+                  </ImageView>
+                  <Label maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Strona główna" textFill="WHITE">
+                     <font>
+                        <Font name="Book Antiqua" size="23.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox fx:id="algorithmEnglishButton" layoutX="10.0" layoutY="120.0" onMouseEntered="#algorithmEnglishMouseEntered" onMouseExited="#algorithmEnglishMouseExited" onMousePressed="#algorithmEnglishMousePressed" prefWidth="200.0" styleClass="left-option">
+               <children>
+                  <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/option_algorithm.jpg" />
+                     </image>
+                  </ImageView>
+                  <Label maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Algorytm [EN]" textFill="WHITE">
+                     <font>
+                        <Font name="Book Antiqua" size="23.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox fx:id="algorithmPolishButton" layoutX="10.0" layoutY="180.0" onMouseEntered="#algorithmPolishMouseEntered" onMouseExited="#algorithmPolishMouseExited" onMousePressed="#algorithmPolishMousePressed" prefWidth="200.0">
+               <children>
+                  <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/option_algorithm.jpg" />
+                     </image>
+                  </ImageView>
+                  <Label disable="true" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Algorytm [PL]" textFill="WHITE">
+                     <font>
+                        <Font name="Book Antiqua" size="23.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox fx:id="researchButton" layoutX="10.0" layoutY="240.0" onMouseEntered="#researchMouseEntered" onMouseExited="#researchMouseExited" onMousePressed="#researchMousePressed" prefWidth="200.0">
+               <children>
+                  <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/option_research.jpg" />
+                     </image>
+                  </ImageView>
+                  <Label disable="true" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Badania" textFill="WHITE">
+                     <font>
+                        <Font name="Book Antiqua" size="23.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox fx:id="contactButton" layoutX="10.0" layoutY="340.0" onMouseEntered="#contactMouseEntered" onMouseExited="#contactMouseExited" onMousePressed="#contactMousePressed" prefWidth="200.0">
+               <children>
+                  <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/option_contact.jpg" />
+                     </image>
+                  </ImageView>
+                  <Label disable="true" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Kontakt" textFill="WHITE">
+                     <font>
+                        <Font name="Book Antiqua" size="23.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </HBox>
+            <HBox fx:id="exitButton" layoutX="10.0" layoutY="300.0" onMouseEntered="#exitMouseEntered" onMouseExited="#exitMouseExited" onMousePressed="#exitMousePressed" prefWidth="200.0">
+               <children>
+                  <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../images/option_exit.jpg" />
+                     </image>
+                  </ImageView>
+                  <Label maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Wyjście" textFill="WHITE">
+                     <font>
+                        <Font name="Book Antiqua" size="23.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets top="120.0" />
+               </VBox.margin>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox layoutX="260.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="640.0" prefWidth="40.0" styleClass="middle-panel">
+         <children>
+            <ImageView fx:id="menuChoiceButton" fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+               <VBox.margin>
+                  <Insets top="130.0" />
+               </VBox.margin>
+               <image>
+                  <Image url="@../images/star.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="algorithmEnglishChoiceButton" fitHeight="40.0" fitWidth="40.0" layoutX="10.0" layoutY="140.0" pickOnBounds="true" preserveRatio="true">
+               <VBox.margin>
+                  <Insets top="30.0" />
+               </VBox.margin>
+            </ImageView>
+            <ImageView fx:id="algorithmPolishChoiceButton" fitHeight="40.0" fitWidth="40.0" layoutX="10.0" layoutY="210.0" pickOnBounds="true" preserveRatio="true">
+               <VBox.margin>
+                  <Insets top="30.0" />
+               </VBox.margin>
+            </ImageView>
+            <ImageView fx:id="researchChoiceButton" fitHeight="40.0" fitWidth="40.0" layoutX="10.0" layoutY="280.0" pickOnBounds="true" preserveRatio="true">
+               <VBox.margin>
+                  <Insets top="30.0" />
+               </VBox.margin>
+            </ImageView>
+            <ImageView fx:id="contactChoiceButton" fitHeight="40.0" fitWidth="40.0" layoutX="10.0" layoutY="350.0" pickOnBounds="true" preserveRatio="true">
+               <VBox.margin>
+                  <Insets top="30.0" />
+               </VBox.margin>
+            </ImageView>
+         </children>
+      </VBox>
+      <Pane fx:id="menuPane" layoutX="300.0" prefHeight="640.0" prefWidth="660.0" visible="false">
+         <children>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="640.0" prefWidth="660.0">
+               <children>
+                  <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="50.0" prefWidth="660.0" styleClass="right-header" text="Strona główna" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+                     <font>
+                        <Font name="Book Antiqua" size="25.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="menuText" alignment="TOP_CENTER" prefHeight="590.0" prefWidth="660.0" styleClass="menu-text" textAlignment="JUSTIFY" wrapText="true">
+                     <font>
+                        <Font name="Book Antiqua" size="16.0" />
+                     </font>
+                     <padding>
+                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                     </padding>
+                  </Label>
+               </children>
+            </VBox>
+         </children>
+      </Pane>
+      <Pane fx:id="algorithmEnglishPane" layoutX="300.0" prefHeight="640.0" prefWidth="660.0">
+         <children>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="640.0" prefWidth="660.0">
+               <children>
+                  <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="50.0" prefWidth="660.0" styleClass="right-header" text="Algorytm dla języka angielskiego" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+                     <font>
+                        <Font name="Book Antiqua" size="25.0" />
+                     </font>
+                  </Label>
+                  <Pane prefWidth="200.0" styleClass="menu-text" VBox.vgrow="ALWAYS">
+                     <children>
+                        <TextArea fx:id="englishText" layoutX="14.0" layoutY="14.0" prefHeight="150.0" prefWidth="630.0" promptText="Analizowany tekst" wrapText="true" />
+                        <Button alignment="CENTER" layoutX="524.0" layoutY="174.0" mnemonicParsing="false" onAction="#analyzeEnglishText" prefHeight="50.0" prefWidth="120.0" text="Analizuj tekst" textAlignment="CENTER" wrapText="true" />
+                        <Button alignment="CENTER" layoutX="394.0" layoutY="174.0" mnemonicParsing="false" onAction="#loadEnglishText" prefHeight="50.0" prefWidth="120.0" text="Załaduj z pliku tekstowego" textAlignment="CENTER" wrapText="true" />
+                        <TextArea fx:id="englishOutput" layoutX="15.0" layoutY="396.0" prefHeight="180.0" prefWidth="630.0" promptText="Wynik pracy algorytmu" wrapText="true" />
+                        <TextArea fx:id="englishMorphologicalAnalysis" layoutX="334.0" layoutY="234.0" prefHeight="150.0" prefWidth="310.0" promptText="Wynik analizy morfologicznej" wrapText="true" />
+                        <TextArea fx:id="englishSentences" layoutX="14.0" layoutY="234.0" prefHeight="150.0" prefWidth="310.0" promptText="Wynik wyodrębnienia sentencji" wrapText="true" />
+                     </children></Pane>
+               </children>
+            </VBox>
+         </children>
+      </Pane>
+      <Pane fx:id="algorithmPolishPane" layoutX="300.0" prefHeight="640.0" prefWidth="660.0">
+         <children>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="640.0" prefWidth="660.0">
+               <children>
+                  <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="50.0" prefWidth="660.0" styleClass="right-header" text="Algorytm dla języka polskiego" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+                     <font>
+                        <Font name="Book Antiqua" size="25.0" />
+                     </font>
+                  </Label>
+                  <Pane prefWidth="200.0" styleClass="menu-text" VBox.vgrow="ALWAYS">
+                     <children>
+                        <TextArea fx:id="polishText" layoutX="14.0" layoutY="14.0" prefHeight="150.0" prefWidth="630.0" promptText="Analizowany tekst" wrapText="true" />
+                        <Button alignment="CENTER" layoutX="524.0" layoutY="174.0" mnemonicParsing="false" onAction="#analyzePolishText" prefHeight="50.0" prefWidth="120.0" text="Analizuj tekst" textAlignment="CENTER" wrapText="true" />
+                        <Button alignment="CENTER" layoutX="394.0" layoutY="174.0" mnemonicParsing="false" onAction="#loadPolishText" prefHeight="50.0" prefWidth="120.0" text="Załaduj z pliku tekstowego" textAlignment="CENTER" wrapText="true" />
+                        <TextArea fx:id="polishOutput" layoutX="15.0" layoutY="396.0" prefHeight="180.0" prefWidth="630.0" promptText="Wynik pracy algorytmu" wrapText="true" />
+                        <TextArea fx:id="polishMorphologicalAnalysis" layoutX="334.0" layoutY="234.0" prefHeight="150.0" prefWidth="310.0" promptText="Wynik analizy morfologicznej" wrapText="true" />
+                        <TextArea fx:id="polishSentences" layoutX="14.0" layoutY="234.0" prefHeight="150.0" prefWidth="310.0" promptText="Wynik wyodrębnienia sentencji" wrapText="true" />
+                     </children>
+                  </Pane>
+               </children>
+            </VBox>
+         </children>
+      </Pane>
+      <Pane fx:id="researchPane" layoutX="300.0" prefHeight="640.0" prefWidth="660.0" visible="false">
+         <children>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="640.0" prefWidth="660.0" styleClass="menu-text">
+               <children>
+                  <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="50.0" prefWidth="660.0" styleClass="right-header" text="Badania i statystyki" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+                     <font>
+                        <Font name="Book Antiqua" size="25.0" />
+                     </font>
+                  </Label>
+                  <Pane prefWidth="200.0" />
+               </children>
+            </VBox>
+         </children>
+      </Pane>
+      <Pane fx:id="contactPane" layoutX="300.0" prefHeight="640.0" prefWidth="660.0" visible="false">
+         <children>
+            <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="640.0" prefWidth="660.0" styleClass="menu-text">
+               <children>
+                  <Label alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="50.0" prefWidth="660.0" styleClass="right-header" text="Kontakt z autorami" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+                     <font>
+                        <Font name="Book Antiqua" size="25.0" />
+                     </font>
+                  </Label>
+                  <Pane prefWidth="200.0" />
+               </children>
+            </VBox>
+         </children>
+      </Pane>
+   </children>
+</AnchorPane>
