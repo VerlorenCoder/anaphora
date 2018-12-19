@@ -18,6 +18,7 @@ import ui.MenuButtonNames;
 import ui.StageManager;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class MainController {
@@ -29,6 +30,10 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        initializeMenu();
+    }
+
+    private void initializeMenu() {
         activePane = menuPane;
         activeMenuOption = menuChoiceButton;
 
@@ -38,17 +43,13 @@ public class MainController {
         researchPane.setVisible(false);
         contactPane.setVisible(false);
 
-        initializeMenu();
-    }
-
-    private void initializeMenu() {
         prepareText(menuTextFileLocalization, menuText);
     }
 
     private void prepareText(String message, Label label) {
         String contactTextFilePath = getClass().getResource(message).getPath();
         File file = new File(contactTextFilePath);
-        FileReader fileReader = null;
+        FileReader fileReader;
 
         try {
             fileReader = new FileReader(file);
@@ -277,12 +278,32 @@ public class MainController {
         Tokenizer tokenizer = new Tokenizer();
         SentenceTagger sentenceTagger = new SentenceTagger();
 
+        ArrayList<String> nounTags = new ArrayList<>();
+        nounTags.add("NN");
+        nounTags.add("NNS");
+        nounTags.add("NNP");
+        nounTags.add("NNPS");
+
+        ArrayList<String> pronounTags = new ArrayList<>();
+        pronounTags.add("PRP");
+        pronounTags.add("PRP$");
+
+        int nounCounter = 1;
+        int pronounCounter = 1;
         for(int i = 0; i < sentences.length; i++) {
             String[] tokens = tokenizer.simpleTokenization(sentences[i]);
             String[] tags = sentenceTagger.tagSentence(tokens);
 
             for(int j = 0; j < tokens.length; j++) {
                 englishMorphologicalAnalysis.appendText(tokens[j] + " :: " + tags[j] + "\n");
+                if(nounTags.contains(tags[j])) {
+                    englishOutput.appendText("[N" + Integer.toString(nounCounter) + "] ");
+                    nounCounter++;
+                } else if(pronounTags.contains(tags[j])) {
+                    englishOutput.appendText("[P" + Integer.toString(pronounCounter) + "] ");
+                    pronounCounter++;
+                }
+                englishOutput.appendText(tokens[j] + " ");
             }
 
             englishMorphologicalAnalysis.appendText("\n");
