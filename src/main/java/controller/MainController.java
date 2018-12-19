@@ -1,16 +1,19 @@
 package controller;
 
 import domain.Sentence;
+import domain.Token;
 import javafx.application.Platform;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextArea;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import logic.SentenceSplitter;
 import logic.SentenceTagger;
@@ -18,9 +21,12 @@ import logic.Tokenizer;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class MainController {
@@ -29,6 +35,8 @@ public class MainController {
     private static final String BUTTON_CHOICE_IMAGE_LOCALIZATION = "/images/star.png";
 
     private SentenceSplitter sentenceSplitter = new SentenceSplitter();
+    private SentenceTagger sentenceTagger = new SentenceTagger();
+    private Tokenizer tokenizer = new Tokenizer();
 
     private ImageView activeMenuOption = null;
     private Pane activePane = null;
@@ -290,27 +298,11 @@ public class MainController {
 
         String textForAnalysis = getEnglishText();
         ArrayList<Sentence> sentencesForAnalysis = sentenceSplitter.splitIntoSentences(textForAnalysis);
-
-        englishSentences.positionCaret(0);
+        displayEnglishSentences(sentencesForAnalysis);
 
         // Morphological analysis
-        Tokenizer tokenizer = new Tokenizer();
-        SentenceTagger sentenceTagger = new SentenceTagger();
-
-        for(int i = 0; i < sentencesForAnalysis.size(); i++) {
-            String[] tokens = tokenizer.tokenize(sentencesForAnalysis.get(i).getContent());
-            String[] tags = sentenceTagger.getTags(tokens);
-
-            for(int j = 0; j < tokens.length; j++) {
-                englishMorphologicalAnalysis.appendText(tokens[j] + " :: " + tags[j] + "\n");
-            }
-
-            englishMorphologicalAnalysis.appendText("\n");
-        }
-    }
-
-    private String getEnglishText() {
-        return englishText.getText();
+        List<Token> tokens = getTokens(sentencesForAnalysis);
+        displayEnglishMorphologicalAnalysis(tokens);
     }
 
     private void clearPreviouslyDisplayedData() {
@@ -318,6 +310,43 @@ public class MainController {
         englishMorphologicalAnalysis.clear();
     }
 
+    private String getEnglishText() {
+        return englishText.getText();
+    }
+
+    private void displayEnglishSentences(ArrayList<Sentence> sentencesForAnalysis) {
+        sentencesForAnalysis.forEach(sentence -> englishSentences.appendText(sentence.toStringWithIndexes() + "\n"));
+        englishSentences.positionCaret(0);
+    }
+
+    private List<Token> getTokens(ArrayList<Sentence> sentencesForAnalysis) {
+
+        List<Token> tokens = sentencesForAnalysis
+                .stream()
+                .flatMap(sentence -> tokenizer.tokenize(sentence).stream())
+                .collect(Collectors.toList());
+
+        String[] tags = sentenceTagger.getTags(tokens);
+
+        // Connecting tokens with tags
+        for (int i = 0; i < tokens.size(); i++) {
+            tokens.get(i).setTag(tags[i]);
+        }
+
+        return tokens;
+    }
+
+    private void displayEnglishMorphologicalAnalysis(List<Token> tokens) {
+
+        for (Token token: tokens) {
+            appendEnglishMorphologicalAnalysisText(token + "\n");
+        }
+        appendEnglishMorphologicalAnalysisText("\n");
+    }
+
+    private void appendEnglishMorphologicalAnalysisText(String text) {
+        englishMorphologicalAnalysis.appendText(text);
+    }
 
     @FXML
     void loadPolishText(ActionEvent event) {
