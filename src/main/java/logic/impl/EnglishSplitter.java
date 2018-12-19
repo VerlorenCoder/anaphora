@@ -1,6 +1,7 @@
-package logic;
+package logic.impl;
 
 import domain.Sentence;
+import logic.Splitter;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -8,12 +9,14 @@ import opennlp.tools.sentdetect.SentenceModel;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-public class SentenceSplitter {
+public class EnglishSplitter implements Splitter {
 
     private static final String ENGLISH_MODEL_PATH = "/binaries/en-sent.bin";
 
-    public ArrayList<Sentence> splitIntoSentences(String text) {
+    @Override
+    public List<Sentence> split(String sentence) {
 
         String englishSentenceDetectorModelPath = getClass().getResource(ENGLISH_MODEL_PATH).getPath();
         File file = new File(englishSentenceDetectorModelPath);
@@ -24,7 +27,7 @@ public class SentenceSplitter {
         try {
             sentenceModel = new SentenceModel(file);
             sentenceDetector = new SentenceDetectorME(sentenceModel);
-            slittedSentences = sentenceDetector.sentDetect(text);
+            slittedSentences = sentenceDetector.sentDetect(sentence);
         } catch (IOException exception) {
             exception.printStackTrace();
         }

@@ -15,9 +15,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
-import logic.SentenceSplitter;
-import logic.SentenceTagger;
-import logic.Tokenizer;
+import logic.impl.EnglishSplitter;
+import logic.impl.EnglishTagger;
+import logic.impl.SimpleTokenizer;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
@@ -25,7 +25,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,9 +33,9 @@ public class MainController {
     private static final String MENU_TEXT_FILE_LOCALIZATION = "/text/menu-text.txt";
     private static final String BUTTON_CHOICE_IMAGE_LOCALIZATION = "/images/star.png";
 
-    private SentenceSplitter sentenceSplitter = new SentenceSplitter();
-    private SentenceTagger sentenceTagger = new SentenceTagger();
-    private Tokenizer tokenizer = new Tokenizer();
+    private EnglishSplitter sentenceSplitter = new EnglishSplitter();
+    private EnglishTagger sentenceTagger = new EnglishTagger();
+    private SimpleTokenizer tokenizer = new SimpleTokenizer();
 
     private ImageView activeMenuOption = null;
     private Pane activePane = null;
@@ -297,7 +296,7 @@ public class MainController {
         clearPreviouslyDisplayedData();
 
         String textForAnalysis = getEnglishText();
-        ArrayList<Sentence> sentencesForAnalysis = sentenceSplitter.splitIntoSentences(textForAnalysis);
+        List<Sentence> sentencesForAnalysis = sentenceSplitter.split(textForAnalysis);
         displayEnglishSentences(sentencesForAnalysis);
 
         // Morphological analysis
@@ -314,19 +313,19 @@ public class MainController {
         return englishText.getText();
     }
 
-    private void displayEnglishSentences(ArrayList<Sentence> sentencesForAnalysis) {
+    private void displayEnglishSentences(List<Sentence> sentencesForAnalysis) {
         sentencesForAnalysis.forEach(sentence -> englishSentences.appendText(sentence.toStringWithIndexes() + "\n"));
         englishSentences.positionCaret(0);
     }
 
-    private List<Token> getTokens(ArrayList<Sentence> sentencesForAnalysis) {
+    private List<Token> getTokens(List<Sentence> sentencesForAnalysis) {
 
         List<Token> tokens = sentencesForAnalysis
                 .stream()
                 .flatMap(sentence -> tokenizer.tokenize(sentence).stream())
                 .collect(Collectors.toList());
 
-        String[] tags = sentenceTagger.getTags(tokens);
+        String[] tags = sentenceTagger.tag(tokens);
 
         // Connecting tokens with tags
         for (int i = 0; i < tokens.size(); i++) {

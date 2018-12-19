@@ -1,4 +1,4 @@
-package logic;
+package logic.impl;
 
 import domain.Token;
 import opennlp.tools.postag.POSModel;
@@ -9,11 +9,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class SentenceTagger {
+public class EnglishTagger implements logic.Tagger {
 
     private static final String ENGLISH_MODEL_PATH = "/binaries/en-pos-maxent.bin";
 
-    public String[] getTags(List<Token> tokens) {
+    @Override
+    public String[] tag(List<Token> tokens) {
 
         String englishTaggerModelPath = getClass().getResource(ENGLISH_MODEL_PATH).getPath();
         File file = new File(englishTaggerModelPath);
