@@ -1,7 +1,8 @@
 package logic;
 
 public class Tokenizer {
-    public String[] simpleTokenization(String sentence) {
+
+    public String[] tokenize(String sentence) {
         return sentence.split(" ");
     }
 }

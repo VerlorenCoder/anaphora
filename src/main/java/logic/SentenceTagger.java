@@ -8,9 +8,11 @@ import java.io.File;
 import java.io.IOException;
 
 public class SentenceTagger {
+
     private static final String ENGLISH_MODEL_PATH = "/binaries/en-pos-maxent.bin";
 
-    public String[] tagSentence(String[] tokens) {
+    public String[] getTags(String[] tokens) {
+
         String englishTaggerModelPath = getClass().getResource(ENGLISH_MODEL_PATH).getPath();
         File file = new File(englishTaggerModelPath);
 
