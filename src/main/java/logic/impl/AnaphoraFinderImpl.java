@@ -65,15 +65,12 @@ public class AnaphoraFinderImpl implements AnaphoraFinder {
     public void analyze(String textForAnalysis) {
 
         // split
-        List<Sentence> sentences = splitter.split(textForAnalysis);
-        afterSplit.accept(sentences);
+        List<Sentence> sentences = splitToSentences(textForAnalysis);
+        notifyAfterSplit(sentences);
 
         // token
-        List<Token> tokens = sentences
-                .stream()
-                .flatMap(sentence -> tokenizer.tokenize(sentence).stream())
-                .collect(Collectors.toList());
-        afterTokenize.accept(tokens);
+        List<Token> tokens = splitToTokens(sentences);
+        notifyAfterTokenize(tokens);
 
         // tags
         String[] tags = tagger.tag(tokens);
@@ -82,6 +79,27 @@ public class AnaphoraFinderImpl implements AnaphoraFinder {
         for (int i = 0; i < tokens.size(); i++) {
             tokens.get(i).setTag(tags[i]);
         }
+    }
+
+    private void notifyAfterTokenize(List<Token> tokens) {
+
+        afterTokenize.accept(tokens);
+    }
+
+    private void notifyAfterSplit(List<Sentence> sentences) {
+        afterSplit.accept(sentences);
+    }
+
+    private List<Token> splitToTokens(List<Sentence> sentences) {
+
+        return sentences
+                .stream()
+                .flatMap(sentence -> tokenizer.tokenize(sentence).stream())
+                .collect(Collectors.toList());
+    }
+
+    private List<Sentence> splitToSentences(String textForAnalysis) {
+        return splitter.split(textForAnalysis);
     }
 
 }
