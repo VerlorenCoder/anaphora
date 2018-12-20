@@ -15,9 +15,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
-import logic.impl.EnglishSplitter;
-import logic.impl.EnglishTagger;
-import logic.impl.SimpleTokenizer;
+import logic.AnaphoraFinder;
+import logic.impl.AnaphoraFinderImpl;
+import logic.impl.EnglishSplitterImpl;
+import logic.impl.EnglishTaggerImpl;
+import logic.impl.SimpleTokenizerImpl;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
@@ -33,9 +35,15 @@ public class MainController {
     private static final String MENU_TEXT_FILE_LOCALIZATION = "/text/menu-text.txt";
     private static final String BUTTON_CHOICE_IMAGE_LOCALIZATION = "/images/star.png";
 
-    private EnglishSplitter sentenceSplitter = new EnglishSplitter();
-    private EnglishTagger sentenceTagger = new EnglishTagger();
-    private SimpleTokenizer tokenizer = new SimpleTokenizer();
+    private EnglishSplitterImpl sentenceSplitter = new EnglishSplitterImpl();
+    private EnglishTaggerImpl sentenceTagger = new EnglishTaggerImpl();
+    private SimpleTokenizerImpl tokenizer = new SimpleTokenizerImpl();
+
+    private AnaphoraFinder englishAnaphoraFinder = AnaphoraFinderImpl
+            .builder(sentenceSplitter, sentenceTagger, tokenizer)
+            .afterSplit(this::displayEnglishSentences)
+            .afterTokenize(this::displayEnglishMorphologicalAnalysis)
+            .build();
 
     private ImageView activeMenuOption = null;
     private Pane activePane = null;
@@ -291,17 +299,10 @@ public class MainController {
     }
 
     @FXML
-    void analyzeEnglishText(ActionEvent event) {
-
+    void analyzeEnglishText() {
         clearPreviouslyDisplayedData();
-
         String textForAnalysis = getEnglishText();
-        List<Sentence> sentencesForAnalysis = sentenceSplitter.split(textForAnalysis);
-        displayEnglishSentences(sentencesForAnalysis);
-
-        // Morphological analysis
-        List<Token> tokens = getTokens(sentencesForAnalysis);
-        displayEnglishMorphologicalAnalysis(tokens);
+        englishAnaphoraFinder.analyze(textForAnalysis);
     }
 
     private void clearPreviouslyDisplayedData() {
@@ -316,23 +317,6 @@ public class MainController {
     private void displayEnglishSentences(List<Sentence> sentencesForAnalysis) {
         sentencesForAnalysis.forEach(sentence -> englishSentences.appendText(sentence.toStringWithIndexes() + "\n"));
         englishSentences.positionCaret(0);
-    }
-
-    private List<Token> getTokens(List<Sentence> sentencesForAnalysis) {
-
-        List<Token> tokens = sentencesForAnalysis
-                .stream()
-                .flatMap(sentence -> tokenizer.tokenize(sentence).stream())
-                .collect(Collectors.toList());
-
-        String[] tags = sentenceTagger.tag(tokens);
-
-        // Connecting tokens with tags
-        for (int i = 0; i < tokens.size(); i++) {
-            tokens.get(i).setTag(tags[i]);
-        }
-
-        return tokens;
     }
 
     private void displayEnglishMorphologicalAnalysis(List<Token> tokens) {

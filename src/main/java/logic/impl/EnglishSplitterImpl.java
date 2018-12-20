@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnglishSplitter implements Splitter {
+public class EnglishSplitterImpl implements Splitter {
 
     private static final String ENGLISH_MODEL_PATH = "/binaries/en-sent.bin";
 

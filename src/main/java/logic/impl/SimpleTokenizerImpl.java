@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SimpleTokenizer implements Tokenizer {
+public class SimpleTokenizerImpl implements Tokenizer {
 
     private final static String SPLIT_REGEX = " ";
 

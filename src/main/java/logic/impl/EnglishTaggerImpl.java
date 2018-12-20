@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class EnglishTagger implements logic.Tagger {
+public class EnglishTaggerImpl implements logic.Tagger {
 
     private static final String ENGLISH_MODEL_PATH = "/binaries/en-pos-maxent.bin";
 
