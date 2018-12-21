@@ -3,17 +3,11 @@ package domain;
 public class Token {
 
     private String value;
-    private String tag ; // ToDo: enum
+    private Tag tag ;
     private Sentence sentence;
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    @Override
-    public String toString() {
-
-        return "[" + (sentence != null ? sentence.getIndex() : "?") + "] " + value + " :: " + tag;
     }
 
     public String getValue() {
@@ -24,11 +18,11 @@ public class Token {
         this.value = value;
     }
 
-    public String getTag() {
+    public Tag getTag() {
         return tag;
     }
 
-    public void setTag(String tag) {
+    public void setTag(Tag tag) {
         this.tag = tag;
     }
 
@@ -45,7 +39,7 @@ public class Token {
     public static class Builder {
 
         private String value;
-        private String tag;
+        private Tag tag;
         private Sentence sentence;
 
         private Builder() { }
@@ -55,7 +49,7 @@ public class Token {
             return this;
         }
 
-        public Builder tag(String tag) {
+        public Builder tag(Tag tag) {
             this.tag = tag;
             return this;
         }

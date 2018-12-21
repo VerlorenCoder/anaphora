@@ -5,7 +5,7 @@ public enum Tag {
     COORDINATING_CONJUNCTION("CC", "spójnik"),
     CARDINAL_NUMBER("CD", "liczba"),
     DETERMINER("DT", "oznacznik(?)"),
-    EXISTENSIAL_THERE("EX", "(there)"),
+    EXISTENTIAL_THERE("EX", "(there)"),
     FOREIGN_WORD("FW", "słowo zagraniczne"),
     PREPOSITION_OR_SUBORDINATING_CONJUNCTION("IN", "przyimek"),
     ADJECTIVE("JJ", "przymiotnik w stopniu równym"),
@@ -55,7 +55,7 @@ public enum Tag {
         return polishName;
     }
 
-    public Tag fromAbbreviation(String abbreviation) {
+    public static Tag fromAbbreviation(String abbreviation) {
         for (Tag tag: Tag.values()) {
             if (tag.abbreviation.equals(abbreviation)) {
                 return tag;

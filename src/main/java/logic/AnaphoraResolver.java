@@ -1,6 +1,6 @@
 package logic;
 
-public interface AnaphoraFinder {
+public interface AnaphoraResolver {
 
     void analyze(String textForAnalysis);
 }

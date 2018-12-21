@@ -1,6 +1,8 @@
 package logic.impl;
 
+import domain.Tag;
 import domain.Token;
+import logic.Tagger;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTagger;
 import opennlp.tools.postag.POSTaggerME;
@@ -9,12 +11,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class EnglishTaggerImpl implements logic.Tagger {
+public class EnglishTaggerImpl implements Tagger {
 
     private static final String ENGLISH_MODEL_PATH = "/binaries/en-pos-maxent.bin";
 
     @Override
-    public String[] tag(List<Token> tokens) {
+    public void addTags(List<Token> tokens) {
 
         String englishTaggerModelPath = getClass().getResource(ENGLISH_MODEL_PATH).getPath();
         File file = new File(englishTaggerModelPath);
@@ -31,6 +33,12 @@ public class EnglishTaggerImpl implements logic.Tagger {
             exception.printStackTrace();
         }
 
-        return tags;
+        mergeTokensWithTags(tokens, tags);
+    }
+
+    private void mergeTokensWithTags(List<Token> tokens, String[] tags) {
+        for (int i = 0; i < tokens.size(); i++) {
+            tokens.get(i).setTag(Tag.fromAbbreviation(tags[i]));
+        }
     }
 }
