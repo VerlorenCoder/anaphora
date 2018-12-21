@@ -5,5 +5,5 @@ import java.util.List;
 
 public interface Tagger {
 
-    String[] tag(List<Token> tokens);
+    void addTags(List<Token> tokens);
 }

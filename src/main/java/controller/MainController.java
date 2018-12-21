@@ -15,8 +15,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
-import logic.AnaphoraFinder;
-import logic.impl.AnaphoraFinderImpl;
+import logic.AnaphoraResolver;
+import logic.impl.AnaphoraResolverImpl;
 import logic.impl.EnglishSplitterImpl;
 import logic.impl.EnglishTaggerImpl;
 import logic.impl.SimpleTokenizerImpl;
@@ -39,7 +39,7 @@ public class MainController {
     private EnglishTaggerImpl sentenceTagger = new EnglishTaggerImpl();
     private SimpleTokenizerImpl tokenizer = new SimpleTokenizerImpl();
 
-    private AnaphoraFinder englishAnaphoraFinder = AnaphoraFinderImpl
+    private AnaphoraResolver englishAnaphoraFinder = AnaphoraResolverImpl
             .builder(sentenceSplitter, sentenceTagger, tokenizer)
             .afterSplit(this::displayEnglishSentences)
             .afterTokenize(this::displayEnglishMorphologicalAnalysis)

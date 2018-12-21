@@ -2,7 +2,7 @@ package logic.impl;
 
 import domain.Sentence;
 import domain.Token;
-import logic.AnaphoraFinder;
+import logic.AnaphoraResolver;
 import logic.Splitter;
 import logic.Tagger;
 import logic.Tokenizer;
@@ -11,15 +11,16 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class AnaphoraFinderImpl implements AnaphoraFinder {
+public class AnaphoraResolverImpl implements AnaphoraResolver {
 
     private Splitter splitter;
     private Tagger tagger;
     private Tokenizer tokenizer;
     private Consumer<List<Sentence>> afterSplit;
     private Consumer<List<Token>> afterTokenize;
+    private Consumer<List<Token>> afterTag;
 
-    private AnaphoraFinderImpl(Splitter splitter, Tagger tagger, Tokenizer tokenizer) {
+    private AnaphoraResolverImpl(Splitter splitter, Tagger tagger, Tokenizer tokenizer) {
         this.splitter = splitter;
         this.tagger = tagger;
         this.tokenizer = tokenizer;
@@ -36,6 +37,7 @@ public class AnaphoraFinderImpl implements AnaphoraFinder {
         private Tokenizer tokenizer;
         private Consumer<List<Sentence>> afterSplit;
         private Consumer<List<Token>> afterTokenize;
+        private Consumer<List<Token>> afterTag;
 
         private Builder(Splitter splitter, Tagger tagger, Tokenizer tokenizer) {
             this.splitter = splitter;
@@ -48,15 +50,21 @@ public class AnaphoraFinderImpl implements AnaphoraFinder {
             return this;
         }
 
-        public Builder afterTokenize(Consumer<List<Token>> afterTokinize) {
-            this.afterTokenize = afterTokinize;
+        public Builder afterTokenize(Consumer<List<Token>> afterTokenize) {
+            this.afterTokenize = afterTokenize;
             return this;
         }
 
-        public AnaphoraFinderImpl build() {
-            AnaphoraFinderImpl anaphoraFinder = new AnaphoraFinderImpl(splitter, tagger, tokenizer);
+        public Builder afterTag(Consumer<List<Token>> afterTag) {
+            this.afterTag = afterTag;
+            return this;
+        }
+
+        public AnaphoraResolverImpl build() {
+            AnaphoraResolverImpl anaphoraFinder = new AnaphoraResolverImpl(splitter, tagger, tokenizer);
             anaphoraFinder.afterSplit = this.afterSplit != null ? this.afterSplit : o -> { };
             anaphoraFinder.afterTokenize = this.afterTokenize != null ? this.afterTokenize : o -> { };
+            anaphoraFinder.afterTag = this.afterTag != null ? this.afterTag : o -> { };
             return anaphoraFinder;
         }
     }
@@ -68,26 +76,14 @@ public class AnaphoraFinderImpl implements AnaphoraFinder {
         List<Sentence> sentences = splitToSentences(textForAnalysis);
         notifyAfterSplit(sentences);
 
-        // token
+        // tokenize
         List<Token> tokens = splitToTokens(sentences);
         notifyAfterTokenize(tokens);
 
-        // tags
-        String[] tags = tagger.tag(tokens);
+        // tag
+        addTags(tokens);
+        notifyAfterTag(tokens);
 
-        // Connecting tokens with tags
-        for (int i = 0; i < tokens.size(); i++) {
-            tokens.get(i).setTag(tags[i]);
-        }
-    }
-
-    private void notifyAfterTokenize(List<Token> tokens) {
-
-        afterTokenize.accept(tokens);
-    }
-
-    private void notifyAfterSplit(List<Sentence> sentences) {
-        afterSplit.accept(sentences);
     }
 
     private List<Token> splitToTokens(List<Sentence> sentences) {
@@ -98,8 +94,24 @@ public class AnaphoraFinderImpl implements AnaphoraFinder {
                 .collect(Collectors.toList());
     }
 
+    private void notifyAfterSplit(List<Sentence> sentences) {
+        afterSplit.accept(sentences);
+    }
+
     private List<Sentence> splitToSentences(String textForAnalysis) {
         return splitter.split(textForAnalysis);
+    }
+
+    private void notifyAfterTokenize(List<Token> tokens) {
+        afterTokenize.accept(tokens);
+    }
+
+    private void addTags(List<Token> tokens) {
+        tagger.addTags(tokens);
+    }
+
+    private void notifyAfterTag(List<Token> tokens) {
+        afterTag.accept(tokens);
     }
 
 }
