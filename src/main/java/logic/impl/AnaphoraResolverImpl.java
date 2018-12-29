@@ -8,10 +8,7 @@ import logic.Splitter;
 import logic.Tagger;
 import logic.Tokenizer;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class AnaphoraResolverImpl implements AnaphoraResolver {
@@ -120,7 +117,7 @@ public class AnaphoraResolverImpl implements AnaphoraResolver {
 
     private Map<Sentence, List<Token>> splitToTokens(List<Sentence> sentences) {
 
-        HashMap<Sentence, List<Token>> sentencesWithTokens = new HashMap<>();
+        Map<Sentence, List<Token>> sentencesWithTokens = new LinkedHashMap<>();
 
         sentences.forEach(sentence -> {
             List<Token> tokens = tokenizer.tokenize(sentence);
