@@ -5,6 +5,7 @@ public class Token {
     private String value;
     private Tag tag ;
     private Sentence sentence;
+    private int points = 0;
 
     public static Builder builder() {
         return new Builder();
@@ -34,6 +35,18 @@ public class Token {
     public void setSentence(Sentence sentence) {
 
         this.sentence = sentence;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    public void addPoints(int points) {
+        this.points += points;
     }
 
     public static class Builder {

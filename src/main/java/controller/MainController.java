@@ -5,6 +5,7 @@ import domain.Token;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.print.PageLayout;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
@@ -28,6 +29,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainController {
@@ -39,10 +41,12 @@ public class MainController {
     private EnglishTaggerImpl sentenceTagger = new EnglishTaggerImpl();
     private SimpleTokenizerImpl tokenizer = new SimpleTokenizerImpl();
 
-    private AnaphoraResolver englishAnaphoraFinder = AnaphoraResolverImpl
+    private AnaphoraResolver englishAnaphoraResolver = AnaphoraResolverImpl
             .builder(sentenceSplitter, sentenceTagger, tokenizer)
-            .afterSplit(this::displayEnglishSentences)
-            .afterTag(this::displayEnglishMorphologicalAnalysis)
+            .afterSplit(sentences -> Platform.runLater(() -> displayEnglishSentences(sentences)))
+            .afterTokenize(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .afterTag(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .afterTag(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
             .build();
 
     private ImageView activeMenuOption = null;
@@ -265,7 +269,6 @@ public class MainController {
     }
 
     private void setEnglishText(String loadedText) {
-
         englishText.setText(loadedText);
     }
 
@@ -302,7 +305,8 @@ public class MainController {
     void analyzeEnglishText() {
         clearPreviouslyDisplayedData();
         String textForAnalysis = getEnglishText();
-        englishAnaphoraFinder.analyze(textForAnalysis);
+
+        new Thread(() ->  englishAnaphoraResolver.analyze(textForAnalysis)).start();
     }
 
     private void clearPreviouslyDisplayedData() {
@@ -319,17 +323,25 @@ public class MainController {
         englishSentences.positionCaret(0);
     }
 
-    private void displayEnglishMorphologicalAnalysis(List<Token> tokens) {
+    private void displayEnglishMorphologicalAnalysis(Map<Sentence, List<Token>> sentencesWithTokens) {
 
-        for (Token token: tokens) {
-            appendEnglishMorphologicalAnalysisText("["
-                    + (token.getSentence() != null ? token.getSentence().getIndex() : "?")
-                    + "] "
-                    + (token.getValue() != null ? token.getValue() : "?")
-                    + " :: "
-                    + (token.getTag() != null ? token.getTag().getPolishName() : "?")
-                    + "\n");
-        }
+        englishMorphologicalAnalysis.clear();
+
+        sentencesWithTokens.forEach((sentence, tokens) ->
+                tokens.forEach(token ->
+                        appendEnglishMorphologicalAnalysisText("["
+                                + (token.getSentence() != null ? token.getSentence().getIndex() : "?")
+                                + "] "
+
+                                + (token.getValue() != null ? token.getValue() : "?")
+
+                                + (token.getPoints() > 0 ? " :: " + token.getPoints() + " pkt." : "")
+
+                                + " :: "
+                                + (token.getTag() != null ? token.getTag().getPolishName() : "?")
+
+                                + "\n")));
+
         appendEnglishMorphologicalAnalysisText("\n");
     }
 
