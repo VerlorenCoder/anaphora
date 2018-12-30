@@ -1,31 +1,84 @@
 package controller;
 
+import domain.Sentence;
+import domain.Token;
 import javafx.application.Platform;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextArea;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
-import logic.SentenceSplitter;
-import logic.SentenceTagger;
-import logic.Tokenizer;
+import logic.AnaphoraResolver;
+import logic.impl.AnaphoraResolverImpl;
+import logic.impl.EnglishSplitterImpl;
+import logic.impl.EnglishTaggerImpl;
+import logic.impl.SimpleTokenizerImpl;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainController {
 
-    private static final String menuTextFileLocalization = "/text/menu-text.txt";
-    private static final String buttonChoiceImageLocalization = "/images/star.png";
+    private static final String MENU_TEXT_FILE_LOCALIZATION = "/text/menu-text.txt";
+    private static final String BUTTON_CHOICE_IMAGE_LOCALIZATION = "/images/star.png";
+
+    private EnglishSplitterImpl sentenceSplitter = new EnglishSplitterImpl();
+    private EnglishTaggerImpl sentenceTagger = new EnglishTaggerImpl();
+    private SimpleTokenizerImpl tokenizer = new SimpleTokenizerImpl();
+
+    private AnaphoraResolver englishAnaphoraResolver = AnaphoraResolverImpl
+            .builder(sentenceSplitter, sentenceTagger, tokenizer)
+            .afterSplit(sentences -> Platform.runLater(() -> displayEnglishSentences(sentences)))
+            .afterTokenize(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .afterTag(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .afterTag(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .build();
+
     private ImageView activeMenuOption = null;
     private Pane activePane = null;
+
+    @FXML private ProgressBar progressBar;
+    @FXML private HBox menuButton;
+    @FXML private HBox algorithmEnglishButton;
+    @FXML private HBox algorithmPolishButton;
+    @FXML private HBox researchButton;
+    @FXML private HBox contactButton;
+    @FXML private HBox exitButton;
+    @FXML private ImageView menuChoiceButton;
+    @FXML private ImageView algorithmEnglishChoiceButton;
+    @FXML private ImageView algorithmPolishChoiceButton;
+    @FXML private ImageView researchChoiceButton;
+    @FXML private ImageView contactChoiceButton;
+    @FXML private Pane menuPane;
+    @FXML private Label menuText;
+    @FXML private Pane algorithmEnglishPane;
+    @FXML private Pane algorithmPolishPane;
+    @FXML private Pane researchPane;
+    @FXML private Pane contactPane;
+
+    @FXML private TextArea englishText;
+    @FXML private TextArea englishOutput;
+    @FXML private TextArea englishMorphologicalAnalysis;
+    @FXML private TextArea englishSentences;
+    @FXML private TextArea polishText;
+    @FXML private TextArea polishOutput;
+    @FXML private TextArea polishMorphologicalAnalysis;
+    @FXML private TextArea polishSentences;
+
 
     @FXML
     public void initialize() {
@@ -42,7 +95,7 @@ public class MainController {
     }
 
     private void initializeMenu() {
-        prepareText(menuTextFileLocalization, menuText);
+        prepareText(MENU_TEXT_FILE_LOCALIZATION, menuText);
     }
 
     private void prepareText(String message, Label label) {
@@ -137,7 +190,7 @@ public class MainController {
     }
 
     private void enableChoiceButton(MenuButtonNames name) {
-        String buttonChoicePath = getClass().getResource(buttonChoiceImageLocalization).toExternalForm();
+        String buttonChoicePath = getClass().getResource(BUTTON_CHOICE_IMAGE_LOCALIZATION).toExternalForm();
         Image image = new Image(buttonChoicePath);
 
         Pane previousPane = activePane;
@@ -188,34 +241,6 @@ public class MainController {
         }
     }
 
-    @FXML private ProgressBar progressBar;
-    @FXML private HBox menuButton;
-    @FXML private HBox algorithmEnglishButton;
-    @FXML private HBox algorithmPolishButton;
-    @FXML private HBox researchButton;
-    @FXML private HBox contactButton;
-    @FXML private HBox exitButton;
-    @FXML private ImageView menuChoiceButton;
-    @FXML private ImageView algorithmEnglishChoiceButton;
-    @FXML private ImageView algorithmPolishChoiceButton;
-    @FXML private ImageView researchChoiceButton;
-    @FXML private ImageView contactChoiceButton;
-    @FXML private Pane menuPane;
-    @FXML private Label menuText;
-    @FXML private Pane algorithmEnglishPane;
-    @FXML private Pane algorithmPolishPane;
-    @FXML private Pane researchPane;
-    @FXML private Pane contactPane;
-
-    @FXML private TextArea englishText;
-    @FXML private TextArea englishOutput;
-    @FXML private TextArea englishMorphologicalAnalysis;
-    @FXML private TextArea englishSentences;
-    @FXML private TextArea polishText;
-    @FXML private TextArea polishOutput;
-    @FXML private TextArea polishMorphologicalAnalysis;
-    @FXML private TextArea polishSentences;
-
     @FXML void menuMouseEntered(MouseEvent event) { selectButton(MenuButtonNames.MAIN_MENU); }
     @FXML void menuMouseExited(MouseEvent event) { deselectButton(MenuButtonNames.MAIN_MENU); }
     @FXML void menuMousePressed(MouseEvent event) { pressButton(MenuButtonNames.MAIN_MENU); }
@@ -237,56 +262,90 @@ public class MainController {
 
     @FXML
     void loadEnglishText(ActionEvent event) {
+        File loadedFile = getFileUsingFileChooser();
+        String loadedText = getText(loadedFile);
+        setEnglishText(loadedText);
+    }
+
+    private void setEnglishText(String loadedText) {
+        englishText.setText(loadedText);
+    }
+
+    private File getFileUsingFileChooser() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz plik tekstowy do analizy");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Plik tekstowy", "*.txt"));
-        File file = fileChooser.showOpenDialog(StageManager.getStage());
+        return fileChooser.showOpenDialog(StageManager.getStage());
+    }
 
-        if(file != null) {
-            FileReader fileReader = null;
+    private String getText(File file) {
+        final String EMPTY_TEXT = "";
 
-            try {
-                fileReader = new FileReader(file);
-            } catch (FileNotFoundException exception) {
-                exception.printStackTrace();
-                return;
-            }
+        if (file == null) {
+            return EMPTY_TEXT;
+        }
 
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            String text = bufferedReader.lines().collect(Collectors.joining("\n"));
-            englishText.setText(text);
+        try {
+            return getTextFromFile(file);
+
+        } catch (FileNotFoundException exception) {
+            exception.printStackTrace();
+            return EMPTY_TEXT;
         }
     }
 
+    private String getTextFromFile(File loadedFile) throws FileNotFoundException {
+        FileReader fileReader = new FileReader(loadedFile);
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        return bufferedReader.lines().collect(Collectors.joining("\n"));
+    }
+
     @FXML
-    void analyzeEnglishText(ActionEvent event) {
+    void analyzeEnglishText() {
+        clearPreviouslyDisplayedData();
+        String textForAnalysis = getEnglishText();
+
+        new Thread(() ->  englishAnaphoraResolver.analyze(textForAnalysis)).start();
+    }
+
+    private void clearPreviouslyDisplayedData() {
         englishSentences.clear();
-		englishMorphologicalAnalysis.clear();
+        englishMorphologicalAnalysis.clear();
+    }
 
-        SentenceSplitter sentenceSplitter = new SentenceSplitter();
-        String text = englishText.getText();
-        String[] sentences = sentenceSplitter.splitIntoSentences(text);
+    private String getEnglishText() {
+        return englishText.getText();
+    }
 
-        for(int i = 1; i <= sentences.length; i++) {
-            englishSentences.appendText("[" + i + "] " + sentences[i-1] + "\n\n");
-        }
-
+    private void displayEnglishSentences(List<Sentence> sentencesForAnalysis) {
+        sentencesForAnalysis.forEach(sentence -> englishSentences.appendText(sentence.toStringWithIndexes() + "\n"));
         englishSentences.positionCaret(0);
+    }
 
-        // Morphological analysis
-        Tokenizer tokenizer = new Tokenizer();
-        SentenceTagger sentenceTagger = new SentenceTagger();
+    private void displayEnglishMorphologicalAnalysis(Map<Sentence, List<Token>> sentencesWithTokens) {
 
-        for(int i = 0; i < sentences.length; i++) {
-            String[] tokens = tokenizer.simpleTokenization(sentences[i]);
-            String[] tags = sentenceTagger.tagSentence(tokens);
+        englishMorphologicalAnalysis.clear();
 
-            for(int j = 0; j < tokens.length; j++) {
-                englishMorphologicalAnalysis.appendText(tokens[j] + " :: " + tags[j] + "\n");
-            }
+        sentencesWithTokens.forEach((sentence, tokens) ->
+                tokens.forEach(token ->
+                        appendEnglishMorphologicalAnalysisText("["
+                                + (token.getSentence() != null ? token.getSentence().getIndex() : "?")
+                                + "] "
 
-            englishMorphologicalAnalysis.appendText("\n");
-        }
+                                + (token.getValue() != null ? token.getValue() : "?")
+
+                                + (token.getPoints() > 0 ? " :: " + token.getPoints() + " pkt." : "")
+
+                                + " :: "
+                                + (token.getTag() != null ? token.getTag().getPolishName() : "?")
+
+                                + "\n")));
+
+        appendEnglishMorphologicalAnalysisText("\n");
+    }
+
+    private void appendEnglishMorphologicalAnalysisText(String text) {
+        englishMorphologicalAnalysis.appendText(text);
     }
 
     @FXML

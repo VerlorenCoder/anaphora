@@ -1,7 +1,10 @@
 package logic;
 
-public class Tokenizer {
-    public String[] simpleTokenization(String sentence) {
-        return sentence.split(" ");
-    }
+import domain.Sentence;
+import domain.Token;
+import java.util.List;
+
+public interface Tokenizer {
+
+    List<Token> tokenize(Sentence sentence);
 }
