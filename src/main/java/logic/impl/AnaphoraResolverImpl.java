@@ -16,6 +16,10 @@ public class AnaphoraResolverImpl implements AnaphoraResolver {
     private static int POINTS_FOR_NOUN = 100;
     private static int POINTS_FOR_SUBJECT = 80;
     private static int POINTS_FOR_PROPER_NOUN = 70;
+    private static int POINTS_FOR_ACCUSATIVE_EMPHASIS = 50;
+    private static int POINTS_FOR_INDIRECT_OBJECT_AND_OBLIQUE_COMPLEMENT_EMPHASIS = 40;
+    private static int POINTS_FOR_NON_ADVERBIAL_EMPHASIS = 40;
+    private static int POINTS_FOR_HEAD_NOUN_EMPHASIS = 80;
 
     private Splitter splitter;
     private Tagger tagger;
@@ -152,35 +156,48 @@ public class AnaphoraResolverImpl implements AnaphoraResolver {
         Optional<Token> subject = getSubject(tokens);
         subject.ifPresent(this::addPointsForSubject);
 
-        tokens.forEach(token -> {
+        for (int currentTokenIndex = 0; currentTokenIndex < tokens.size(); currentTokenIndex++) {
+
+            Token currentToken = tokens.get(currentTokenIndex);
+
 
             // biorę zdanie; szukam rzeczowników; punktuję rzeczowniki
             // 100 pkt na start
-            if (isNoun(token)) {
-                addPointsForNoun(token);
+            if (isNoun(currentToken)) {
+                addPointsForNoun(currentToken);
             }
 
             // obiekt istniejący nazwy własne - 70 pkt
             // tagi 14-15
-            if (isProperNoun(token)) {
-                addPointsForProperNoun(token);
+            if (isProperNoun(currentToken)) {
+                addPointsForProperNoun(currentToken);
             }
 
-        });
+            // dopełnienie bliższe - 50 pkt
+            // 3 + (7-9) + 12-15
+            if (isAccusativeEmphasis(currentTokenIndex, tokens)) {
+                addPointsForAccusativeEmphasis(currentToken);
+            }
 
+            // dopełnienie dalsze - 40 pkt
+            // 19 + 12-15
+            // "of" + (3) + (7-9) + 12-15
+            if (isIndirectObjectAndObliqueComplementEmphasis(currentTokenIndex, tokens)) {
+                addPointsForIndirectObjectAndObliqueComplementEmphasis(currentToken);
+            }
 
-        // dopełnienie bliższe - 50 pkt
-        // 3 + (7-9) + 12-15
+            // nie przysłówek - 50 pkt
+            // ! "of" + (3) + (7-9) + 12-15
+            if (isNonAdverbialEmphasis(currentTokenIndex, tokens)) {
+                addPointsForNonAdverbialEmphasis(currentToken);
+            }
 
-        // dopełnienie dalsze - 40 pkt
-        // 19 + 12-15
-        // "of" + (3) + (7-9) + 12-15
-
-        // nie przysłówek - 50 pkt
-        // ! "of" + (3) + (7-9) + 12-15
-
-        // element głowny frazy - 80 pkt
-        // GR
+            // element głowny frazy - 80 pkt
+            // GR
+            if (isHeadNounEmphasis(currentTokenIndex, tokens)) {
+                addPointForHeadNounEmphasis(currentToken);
+            }
+        }
     }
 
     private Optional<Token> getSubject(List<Token> tokens) {
@@ -211,7 +228,125 @@ public class AnaphoraResolverImpl implements AnaphoraResolver {
         token.addPoints(POINTS_FOR_PROPER_NOUN);
     }
 
+    private boolean isAccusativeEmphasis(int analyzedTokenIndex, List<Token> sentenceTokens) {
+        Token analyzedToken = sentenceTokens.get(analyzedTokenIndex);
+        if (isNoun(analyzedToken)) {    // tag: 12-15
+            while (hasPreviousToken(analyzedTokenIndex)) {
+                Token previousToken = getPreviousToken(analyzedTokenIndex, sentenceTokens);
+                if (isDeterminer(previousToken)) {          // tag: 3
+                    return true;
+                }
+                else if (isNotAdjective(previousToken)){    // tag: !(7-9)
+                    return false;
+                }
+                analyzedTokenIndex--;
+            }
+        }
+        return false;
+    }
 
+    private boolean hasPreviousToken(int tokenIndex) {
+        return tokenIndex > 0;
+    }
+
+    private Token getPreviousToken(int tokenIndex, List<Token> tokens) {
+        return tokens.get(tokenIndex - 1);
+    }
+
+    private boolean isNotAdjective(Token token) {
+        return !(token.getTag().equals(Tag.ADJECTIVE)
+                || token.getTag().equals(Tag.ADJECTIVE_COMPARATIVE)
+                || token.getTag().equals(Tag.ADJECTIVE_SUPERLATIVE));
+    }
+
+    private boolean isDeterminer(Token token) {
+        return token.getTag().equals(Tag.DETERMINER);
+    }
+
+    private void addPointsForAccusativeEmphasis(Token token) {
+        token.addPoints(POINTS_FOR_ACCUSATIVE_EMPHASIS);
+    }
+
+    private boolean isIndirectObjectAndObliqueComplementEmphasis(int analyzedTokenIndex, List<Token> sentenceTokens) {
+        Token analyzedToken = sentenceTokens.get(analyzedTokenIndex);
+        if (isNoun(analyzedToken)) {    // tag: 12-15
+
+            // possibility #1 - tags: 19 + 12-15
+            if (hasPreviousToken(analyzedTokenIndex)) {
+                Token previousToken = getPreviousToken(analyzedTokenIndex, sentenceTokens);
+                if (isPossessivePronoun(previousToken)) {
+                    return true;
+                }
+            }
+
+            // possibility #2 - tags: "of" + (3) + (7-9) + 12-15
+            while (hasPreviousToken(analyzedTokenIndex)) {
+                Token previousToken = getPreviousToken(analyzedTokenIndex, sentenceTokens);
+
+                if (isOfWord(previousToken)) {  // word: "of"
+                    return true;
+                }
+                else if (isNotAdjective(previousToken) && isNotDeterminer(previousToken)){    // tag: !(3, 7-9)
+                    return false;
+                }
+                analyzedTokenIndex--;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPossessivePronoun(Token token) {
+        return token.getTag().equals(Tag.POSSESSIVE_PRONOUN);
+    }
+
+    private boolean isNotDeterminer(Token token) {
+        return !isDeterminer(token);
+    }
+
+    private boolean isOfWord(Token token) {
+        return "of".equals(token.getValue());
+    }
+
+    private void addPointsForIndirectObjectAndObliqueComplementEmphasis(Token token) {
+        token.addPoints(POINTS_FOR_INDIRECT_OBJECT_AND_OBLIQUE_COMPLEMENT_EMPHASIS);
+    }
+
+    // !("of" + (3) + (7-9)) + 12-15
+    private boolean isNonAdverbialEmphasis(int analyzedTokenIndex, List<Token> sentenceTokens) {
+        Token analyzedToken = sentenceTokens.get(analyzedTokenIndex);
+        if (isNoun(analyzedToken)) {    // tag: 12-15
+
+            while (hasPreviousToken(analyzedTokenIndex)) {
+                Token previousToken = getPreviousToken(analyzedTokenIndex, sentenceTokens);
+
+                if (isOfWord(previousToken)) {  // word: "of"
+                    return false;
+                }
+                else if (isNotAdjective(previousToken) && isNotDeterminer(previousToken)){    // tag: !(3, 7-9)
+                    return true;
+                }
+                analyzedTokenIndex--;
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private void addPointsForNonAdverbialEmphasis(Token token) {
+        token.addPoints(POINTS_FOR_NON_ADVERBIAL_EMPHASIS);
+    }
+
+    private boolean isHeadNounEmphasis(int analyzedTokenIndex, List<Token> sentenceTokens) {
+        Token analyzedToken = sentenceTokens.get(analyzedTokenIndex);
+        // ToDo: Grześku, proszę to zaimplementować :)
+        return false;
+    }
+
+    private void addPointForHeadNounEmphasis(Token token) {
+        token.addPoints(POINTS_FOR_HEAD_NOUN_EMPHASIS);
+    }
 
     private void notifyAfterPoints(Map<Sentence, List<Token>> sentencesWithTokens) {
         afterPoints.accept(sentencesWithTokens);
