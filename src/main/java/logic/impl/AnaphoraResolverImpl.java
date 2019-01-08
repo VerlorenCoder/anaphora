@@ -3,6 +3,7 @@ package logic.impl;
 import domain.Sentence;
 import domain.Tag;
 import domain.Token;
+import javafx.util.Pair;
 import logic.AnaphoraResolver;
 import logic.Splitter;
 import logic.Tagger;
@@ -10,6 +11,7 @@ import logic.Tokenizer;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class AnaphoraResolverImpl implements AnaphoraResolver {
 
@@ -98,15 +100,25 @@ public class AnaphoraResolverImpl implements AnaphoraResolver {
         notifyAfterTokenize(sentencesWithTokens);
 
         // tag
-        // ToDo: Dwie lub więcej nazw własnych pod rząd to skleić [tagi 14-15] - zrobione w taggerze //J.
         addTags(sentencesWithTokens);
         notifyAfterTag(sentencesWithTokens);
 
-        // points
+        // nouns - points
         addPoints(sentencesWithTokens);
         notifyAfterPoints(sentencesWithTokens);
 
+        // pronouns
+        associatePronounsWithNouns(sentences, sentencesWithTokens);
+
+        System.out.println();
         // ToDo: ramka na 4 zdania itd.
+
+        // [kryterium zgodności rodzaju]
+
+        // Biorę pierwsze zdanie
+        // punktuję tagi
+
+        // Punktuję drugie zdanie
 
     }
 
@@ -351,5 +363,89 @@ public class AnaphoraResolverImpl implements AnaphoraResolver {
     private void notifyAfterPoints(Map<Sentence, List<Token>> sentencesWithTokens) {
         afterPoints.accept(sentencesWithTokens);
     }
+
+    private void associatePronounsWithNouns(List<Sentence> sentences, Map<Sentence, List<Token>> sentencesWithTokens) {
+
+        sentences.forEach(analyzedSentenceInWhichPronounsAreAssociatedWithNouns -> {
+            int analyzedSentenceIndex = analyzedSentenceInWhichPronounsAreAssociatedWithNouns.getIndex();
+            List<Token> analyzedSentenceTokens = sentencesWithTokens.get(analyzedSentenceInWhichPronounsAreAssociatedWithNouns);
+            List<Token> pronounsToAssociateWithNouns = getAllPronouns(analyzedSentenceTokens);
+            List<Token> nounsAndPronouns = getAllNounsAndPronounsToAnalyze(analyzedSentenceInWhichPronounsAreAssociatedWithNouns, sentences, sentencesWithTokens);
+            Pair<Token, Integer> nounOrPronounWithMaxPoints = getNounOrPronounWithMaxPoints(nounsAndPronouns, analyzedSentenceIndex);
+
+            pronounsToAssociateWithNouns.forEach(pronoun -> {
+                if (isNoun(nounOrPronounWithMaxPoints.getKey())) {
+                    pronoun.setRoot(nounOrPronounWithMaxPoints.getKey());
+                    pronoun.setPoints(nounOrPronounWithMaxPoints.getKey().getPoints() + nounOrPronounWithMaxPoints.getValue());
+                }
+                else if (isPronoun(nounOrPronounWithMaxPoints.getKey()) && nounOrPronounWithMaxPoints.getKey().hasRoot()) {
+                    pronoun.setRoot(nounOrPronounWithMaxPoints.getKey().getRoot());
+                    pronoun.setPoints(nounOrPronounWithMaxPoints.getKey().getRoot().getPoints() + nounOrPronounWithMaxPoints.getValue());
+                }
+                else {
+                    throw new IllegalStateException("nie powinno tak być :(");
+                }
+            });
+        });
+    }
+
+    private Pair<Token, Integer> getNounOrPronounWithMaxPoints(List<Token> nounsAndPronouns, int analyzedSentenceIndex) {
+
+        int maxPoints = 0;
+        Token nounOrPronounWithMaxPoints = null;
+
+        for (Token currentNounOrPronoun : nounsAndPronouns) {
+            int currentNounOrPronounPoints = currentNounOrPronoun.getPoints();
+            switch (analyzedSentenceIndex - currentNounOrPronoun.getSentence().getIndex()) {
+                case 0:
+                    break;
+                case 1:
+                    currentNounOrPronounPoints /= 2;
+                    break;
+                case 2:
+                    currentNounOrPronounPoints /= 4;
+                    break;
+                case 3:
+                    currentNounOrPronounPoints /= 8;
+                    break;
+                default:
+                    throw new IllegalStateException("nie powinno to się zdarzyć :O");
+            }
+            if (currentNounOrPronounPoints > maxPoints) {
+                maxPoints = currentNounOrPronounPoints;
+                nounOrPronounWithMaxPoints = currentNounOrPronoun;
+            }
+        }
+        return new Pair<>(nounOrPronounWithMaxPoints, maxPoints);
+    }
+
+    private List<Token> getAllPronouns(List<Token> tokens) {
+        return tokens
+                .stream()
+                .filter(this::isPronoun)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isPronoun(Token token) {
+        return Tag.PERSONAL_PRONOUN.equals(token.getTag())
+                || Tag.POSSESSIVE_PRONOUN.equals(token.getTag())
+                || Tag.POSSESSIVE_WH_PRONOUN.equals(token.getTag())
+                || Tag.WH_PRONOUN.equals(token.getTag());
+    }
+
+    private List<Token> getAllNounsAndPronounsToAnalyze(Sentence sentence, List<Sentence> sentences, Map<Sentence, List<Token>> sentencesWithTokens) {
+        int sentenceIndex = sentences.indexOf(sentence);
+        List<Token> nounsAndPronounsToReturn = new ArrayList<>();
+        // get tokens
+        for (int i = sentenceIndex, j = 0; i >= 0 && j < 4; i--, j++) {
+            nounsAndPronounsToReturn.addAll(sentencesWithTokens.get(sentences.get(i)));
+        }
+        // filter nouns and pronouns
+        return nounsAndPronounsToReturn
+                .stream()
+                .filter(token -> isNoun(token) || isPronoun(token))
+                .collect(Collectors.toList());
+    }
+
 
 }
