@@ -6,7 +6,7 @@ public final class Token<T> {
     private Sentence<T> sentence;
     private T tag ;
     private int points = 0;
-    private Token root;
+    private Token<T> root;
 
 
     public Token(String value, Sentence<T> sentence) {

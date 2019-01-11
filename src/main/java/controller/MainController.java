@@ -347,7 +347,7 @@ public class MainController {
                             .append("[").append(hasSentenceIndex ? (sentenceIndex + 1) : UNKNOWN).append("]")
                             .append(" ")
                             .append(hasRawToken ? rawToken : UNKNOWN)
-                            .append(hasPoints ? "(" + points + ") " : EMPTY)
+                            .append(hasPoints ? "(" + points + ")" : EMPTY)
                             .append(" :: ")
                             .append(hasTag ? tag.getPolishName() : UNKNOWN)
                             .append(NEW_LINE)
