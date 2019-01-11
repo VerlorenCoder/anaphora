@@ -1,6 +1,6 @@
 package domain;
 
-public enum Tag {
+public enum EnglishTag {
 
     COORDINATING_CONJUNCTION("CC", "spójnik"),
     CARDINAL_NUMBER("CD", "liczba"),
@@ -42,7 +42,7 @@ public enum Tag {
     private String abbreviation;
     private String polishName;
 
-    Tag(String abbreviation, String polishName) {
+    EnglishTag(String abbreviation, String polishName) {
         this.abbreviation = abbreviation;
         this.polishName = polishName;
     }
@@ -55,12 +55,12 @@ public enum Tag {
         return polishName;
     }
 
-    public static Tag fromAbbreviation(String abbreviation) {
-        for (Tag tag: Tag.values()) {
+    public static EnglishTag fromAbbreviation(String abbreviation) {
+        for (EnglishTag tag: EnglishTag.values()) {
             if (tag.abbreviation.equals(abbreviation)) {
                 return tag;
             }
         }
-        return Tag.UNKNOWN;
+        return EnglishTag.UNKNOWN;
     }
 }

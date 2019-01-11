@@ -1,62 +1,32 @@
 package domain;
 
-public class Sentence {
+import java.util.ArrayList;
+import java.util.List;
 
-    private String content;
-    private int index;
+public final class Sentence<T> {
 
-    public static Builder builder() {
-        return new Builder();
-    }
+    private String value;
+    private List<Token<T>> tokens = new ArrayList<>();
 
-    @Override
-    public String toString() {
-        return content;
-    }
 
-    public String toStringWithIndexes() {
-        return "[" + index + "] " + content;
+    public Sentence(String value) {
+        this.value = value;
     }
 
 
-    public String getContent() {
-        return content;
+    public String getValue() {
+        return value;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setValue(String value) {
+        this.value = value;
     }
 
-    public int getIndex() {
-        return index;
+    public List<Token<T>> getTokens() {
+        return tokens;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    public static class Builder {
-
-        private String content;
-        private int index;
-
-        private Builder() { }
-
-        public Builder content(String content) {
-            this.content = content;
-            return this;
-        }
-
-        public Builder index(int index) {
-            this.index = index;
-            return this;
-        }
-
-        public Sentence build() {
-            Sentence sentence = new Sentence();
-            sentence.setIndex(index);
-            sentence.setContent(content);
-            return sentence;
-        }
+    public void setTokens(List<Token<T>> tokens) {
+        this.tokens = tokens;
     }
 }

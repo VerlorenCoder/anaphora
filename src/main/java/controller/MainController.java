@@ -1,7 +1,7 @@
 package controller;
 
+import domain.EnglishTag;
 import domain.Sentence;
-import domain.Token;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,10 +16,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import logic.AnaphoraResolver;
-import logic.impl.AnaphoraResolverImpl;
-import logic.impl.EnglishSplitterImpl;
-import logic.impl.EnglishTaggerImpl;
-import logic.impl.SimpleTokenizerImpl;
+import logic.impl.EnglishAnaphoraResolver;
+import logic.impl.EnglishSplitter;
+import logic.impl.EnglishTagger;
+import logic.impl.SimpleTokenizer;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainController {
@@ -36,16 +35,16 @@ public class MainController {
     private static final String MENU_TEXT_FILE_LOCALIZATION = "/text/menu-text.txt";
     private static final String BUTTON_CHOICE_IMAGE_LOCALIZATION = "/images/star.png";
 
-    private EnglishSplitterImpl sentenceSplitter = new EnglishSplitterImpl();
-    private EnglishTaggerImpl sentenceTagger = new EnglishTaggerImpl();
-    private SimpleTokenizerImpl tokenizer = new SimpleTokenizerImpl();
+    private EnglishSplitter englishSplitter = new EnglishSplitter();
+    private SimpleTokenizer tokenizer = new SimpleTokenizer();
+    private EnglishTagger englishTagger = new EnglishTagger();
 
-    private AnaphoraResolver englishAnaphoraResolver = AnaphoraResolverImpl
-            .builder(sentenceSplitter, sentenceTagger, tokenizer)
-            .afterSplit(sentences -> Platform.runLater(() -> displayEnglishSentences(sentences)))
-            .afterTokenize(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
-            .afterTag(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
-            .afterTag(sentencesWithTokens -> Platform.runLater(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+    private AnaphoraResolver englishAnaphoraResolver = EnglishAnaphoraResolver
+            .builder(englishSplitter, tokenizer, englishTagger)
+            .afterSplit(sentences -> runInUserInterfaceThread(() -> displayEnglishSentences(sentences)))
+            .afterTokenize(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .afterTag(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .afterTag(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
             .build();
 
     private ImageView activeMenuOption = null;
@@ -78,7 +77,6 @@ public class MainController {
     @FXML private TextArea polishOutput;
     @FXML private TextArea polishMorphologicalAnalysis;
     @FXML private TextArea polishSentences;
-
 
     @FXML
     public void initialize() {
@@ -261,7 +259,7 @@ public class MainController {
     @FXML void exitMousePressed(MouseEvent event) { Platform.exit(); }
 
     @FXML
-    void loadEnglishText(ActionEvent event) {
+    void loadEnglishText() {
         File loadedFile = getFileUsingFileChooser();
         String loadedText = getText(loadedFile);
         setEnglishText(loadedText);
@@ -304,8 +302,7 @@ public class MainController {
     void analyzeEnglishText() {
         clearPreviouslyDisplayedData();
         String textForAnalysis = getEnglishText();
-
-        new Thread(() ->  englishAnaphoraResolver.analyze(textForAnalysis)).start();
+        runInBackgroundThread(() ->  englishAnaphoraResolver.analyze(textForAnalysis));
     }
 
     private void clearPreviouslyDisplayedData() {
@@ -317,35 +314,54 @@ public class MainController {
         return englishText.getText();
     }
 
-    private void displayEnglishSentences(List<Sentence> sentencesForAnalysis) {
-        sentencesForAnalysis.forEach(sentence -> englishSentences.appendText(sentence.toStringWithIndexes() + "\n"));
+    private <T> void displayEnglishSentences(List<Sentence<T>> sentences) {
+
+        String text = sentences
+                .stream()
+                .map(sentence -> "[" + (sentences.indexOf(sentence) + 1) + "] " + sentence.getValue())
+                .collect(Collectors.joining("\n"));
+
+        englishSentences.setText(text);
         englishSentences.positionCaret(0);
     }
 
-    private void displayEnglishMorphologicalAnalysis(Map<Sentence, List<Token>> sentencesWithTokens) {
+    private void displayEnglishMorphologicalAnalysis(List<Sentence<EnglishTag>> sentences) {
 
-        englishMorphologicalAnalysis.clear();
 
-        sentencesWithTokens.forEach((sentence, tokens) ->
-                tokens.forEach(token ->
-                        appendEnglishMorphologicalAnalysisText("["
-                                + (token.getSentence() != null ? token.getSentence().getIndex() : "?")
-                                + "] "
+        String analyzeReport = sentences
+                .stream()
+                .flatMap(sentence -> sentence.getTokens().stream())
+                .map(token -> {
 
-                                + (token.getValue() != null ? token.getValue() : "?")
+                    final String UNKNOWN = "?";
+                    final String EMPTY = "";
+                    final String NEW_LINE = "\n";
+                    int sentenceIndex = sentences.indexOf(token.getSentence());
+                    boolean hasSentenceIndex = sentenceIndex != -1;
+                    String rawToken = token.getValue();
+                    boolean hasRawToken = rawToken != null;
+                    int points = token.getPoints();
+                    boolean hasPoints = points > 0;
+                    EnglishTag tag = token.getTag();
+                    boolean hasTag = tag != null;
 
-                                + (token.getPoints() > 0 ? " :: " + token.getPoints() + " pkt." : "")
+                    return new StringBuilder()
+                            .append("[").append(hasSentenceIndex ? (sentenceIndex + 1) : UNKNOWN).append("]")
+                            .append(" ")
+                            .append(hasRawToken ? rawToken : UNKNOWN)
+                            .append(hasPoints ? "(" + points + ") " : EMPTY)
+                            .append(" :: ")
+                            .append(hasTag ? tag.getPolishName() : UNKNOWN)
+                            .append(NEW_LINE)
+                            .toString();
+                })
+                .collect(Collectors.joining());
 
-                                + " :: "
-                                + (token.getTag() != null ? token.getTag().getPolishName() : "?")
-
-                                + "\n")));
-
-        appendEnglishMorphologicalAnalysisText("\n");
+        setEnglishMorphologicalAnalysisText(analyzeReport);
     }
 
-    private void appendEnglishMorphologicalAnalysisText(String text) {
-        englishMorphologicalAnalysis.appendText(text);
+    private void setEnglishMorphologicalAnalysisText(String text) {
+        englishMorphologicalAnalysis.setText(text);
     }
 
     @FXML
@@ -356,5 +372,13 @@ public class MainController {
     @FXML
     void analyzePolishText(ActionEvent event) {
 
+    }
+
+    private void runInUserInterfaceThread(Runnable task) {
+        Platform.runLater(task);
+    }
+
+    private void runInBackgroundThread(Runnable task) {
+        new Thread(task).start();
     }
 }

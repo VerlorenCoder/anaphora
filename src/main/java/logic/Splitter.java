@@ -3,7 +3,7 @@ package logic;
 import domain.Sentence;
 import java.util.List;
 
-public interface Splitter {
+public interface Splitter<T> {
 
-    List<Sentence> split(String sentence);
+    List<Sentence<T>> split(String text);
 }
