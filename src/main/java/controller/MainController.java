@@ -36,9 +36,10 @@ public class MainController {
     private Tokenizer tokenizer = new SimpleTokenizer();
     private Tagger<EnglishTag> englishTagger = new EnglishTagger();
     private PointArbitrator<EnglishTag> englishPointArbitrator = new EnglishPointArbitrator();
+    private AnaphoraFinder<EnglishTag> anaphoraFinder = new EnglishAnaphoraFinder();
 
-    private AnaphoraResolver englishAnaphoraResolver = EnglishAnaphoraResolver
-            .builder(englishSplitter, tokenizer, englishTagger, englishPointArbitrator)
+    private AnaphoraResolver<EnglishTag> englishAnaphoraResolver = EnglishAnaphoraResolver
+            .builder(englishSplitter, tokenizer, englishTagger, englishPointArbitrator, anaphoraFinder)
             .afterSplit(sentences -> runInUserInterfaceThread(() -> displayEnglishSentences(sentences)))
             .afterTokenize(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
             .afterTag(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
@@ -300,7 +301,13 @@ public class MainController {
     void analyzeEnglishText() {
         clearPreviouslyDisplayedData();
         String textForAnalysis = getEnglishText();
-        runInBackgroundThread(() ->  englishAnaphoraResolver.analyze(textForAnalysis));
+        runInBackgroundThread(() ->  {
+            List<Sentence<EnglishTag>> sentences = englishAnaphoraResolver.resolve(textForAnalysis);
+            runInUserInterfaceThread(() -> {
+                displayEnglishMorphologicalAnalysis(sentences);
+                displayEnglishOutput(sentences);
+            });
+        });
     }
 
     private void clearPreviouslyDisplayedData() {
@@ -325,7 +332,6 @@ public class MainController {
 
     private void displayEnglishMorphologicalAnalysis(List<Sentence<EnglishTag>> sentences) {
 
-
         String analyzeReport = sentences
                 .stream()
                 .flatMap(sentence -> sentence.getTokens().stream())
@@ -347,7 +353,8 @@ public class MainController {
                             .append("[").append(hasSentenceIndex ? (sentenceIndex + 1) : UNKNOWN).append("]")
                             .append(" ")
                             .append(hasRawToken ? rawToken : UNKNOWN)
-                            .append(hasPoints ? "(" + points + ") " : EMPTY)
+                            .append(token.hasRoot() ? "([" + (sentences.indexOf(token.getRoot().getSentence()) + 1) + "] " + token.getRoot().getValue() + ")" : EMPTY)
+                            .append(hasPoints ? "(" + points + "pkt.)" : EMPTY)
                             .append(" :: ")
                             .append(hasTag ? tag.getPolishName() : UNKNOWN)
                             .append(NEW_LINE)
@@ -360,6 +367,26 @@ public class MainController {
 
     private void setEnglishMorphologicalAnalysisText(String text) {
         englishMorphologicalAnalysis.setText(text);
+    }
+
+    private void displayEnglishOutput(List<Sentence<EnglishTag>> sentences) {
+
+        String text = sentences
+                .stream()
+                .map(sentence -> {
+
+                    String sentenceToDisplay = sentence
+                            .getTokens()
+                            .stream()
+                            .map(token -> token.hasRoot() ? (token.getValue() + "(" + token.getRoot().getValue() + ")") : token.getValue())
+                            .collect(Collectors.joining(" "));
+
+                    return "[" + (sentences.indexOf(sentence) + 1) + "] " + sentenceToDisplay;
+                })
+                .collect(Collectors.joining("\n"));
+
+        englishOutput.setText(text);
+        englishOutput.positionCaret(0);
     }
 
     @FXML

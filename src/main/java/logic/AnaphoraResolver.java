@@ -1,6 +1,10 @@
 package logic;
 
-public interface AnaphoraResolver {
+import domain.Sentence;
 
-    void analyze(String textForAnalysis);
+import java.util.List;
+
+public interface AnaphoraResolver<T> {
+
+    List<Sentence<T>> resolve(String textForAnalysis);
 }

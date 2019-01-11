@@ -7,11 +7,12 @@ import logic.*;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class EnglishAnaphoraResolver implements AnaphoraResolver {
+public class EnglishAnaphoraResolver implements AnaphoraResolver<EnglishTag> {
     private Splitter<EnglishTag> splitter;
     private Tokenizer tokenizer;
     private Tagger<EnglishTag> tagger;
     private PointArbitrator<EnglishTag> pointArbitrator;
+    private AnaphoraFinder<EnglishTag> anaphoraFinder;
     private Consumer<List<Sentence<EnglishTag>>> afterSplit;
     private Consumer<List<Sentence<EnglishTag>>> afterTokenize;
     private Consumer<List<Sentence<EnglishTag>>> afterTag;
@@ -21,19 +22,22 @@ public class EnglishAnaphoraResolver implements AnaphoraResolver {
             Splitter<EnglishTag> splitter,
             Tokenizer tokenizer,
             Tagger<EnglishTag> tagger,
-            PointArbitrator<EnglishTag> pointArbitrator) {
+            PointArbitrator<EnglishTag> pointArbitrator,
+            AnaphoraFinder<EnglishTag> anaphoraFinder) {
         this.splitter = splitter;
         this.tokenizer = tokenizer;
         this.tagger = tagger;
         this.pointArbitrator = pointArbitrator;
+        this.anaphoraFinder = anaphoraFinder;
     }
 
     public static Builder builder(
             Splitter<EnglishTag> splitter,
             Tokenizer tokenizer,
             Tagger<EnglishTag> tagger,
-            PointArbitrator<EnglishTag> tokenArbitrator) {
-        return new Builder(splitter, tokenizer, tagger, tokenArbitrator);
+            PointArbitrator<EnglishTag> tokenArbitrator,
+            AnaphoraFinder<EnglishTag> anaphoraFinder) {
+        return new Builder(splitter, tokenizer, tagger, tokenArbitrator, anaphoraFinder);
     }
 
     public static class Builder {
@@ -41,6 +45,7 @@ public class EnglishAnaphoraResolver implements AnaphoraResolver {
         private Tokenizer tokenizer;
         private Tagger<EnglishTag> tagger;
         private PointArbitrator<EnglishTag> pointArbitrator;
+        private AnaphoraFinder<EnglishTag> anaphoraFinder;
         private Consumer<List<Sentence<EnglishTag>>> afterSplit;
         private Consumer<List<Sentence<EnglishTag>>> afterTokenize;
         private Consumer<List<Sentence<EnglishTag>>> afterTag;
@@ -50,11 +55,13 @@ public class EnglishAnaphoraResolver implements AnaphoraResolver {
                 Splitter<EnglishTag> splitter,
                 Tokenizer tokenizer,
                 Tagger<EnglishTag> tagger,
-                PointArbitrator<EnglishTag> pointArbitrator) {
+                PointArbitrator<EnglishTag> pointArbitrator,
+                AnaphoraFinder<EnglishTag> anaphoraFinder) {
             this.splitter = splitter;
             this.tokenizer = tokenizer;
             this.tagger = tagger;
             this.pointArbitrator = pointArbitrator;
+            this.anaphoraFinder = anaphoraFinder;
         }
 
         public Builder afterSplit(Consumer<List<Sentence<EnglishTag>>> afterSplit) {
@@ -78,17 +85,17 @@ public class EnglishAnaphoraResolver implements AnaphoraResolver {
         }
 
         public EnglishAnaphoraResolver build() {
-            EnglishAnaphoraResolver anaphoraFinder = new EnglishAnaphoraResolver(splitter, tokenizer, tagger, pointArbitrator);
-            anaphoraFinder.afterSplit = this.afterSplit != null ? this.afterSplit : o -> { };
-            anaphoraFinder.afterTokenize = this.afterTokenize != null ? this.afterTokenize : o -> { };
-            anaphoraFinder.afterTag = this.afterTag != null ? this.afterTag : o -> { };
-            anaphoraFinder.afterPoints = this.afterPoints != null ? this.afterPoints : o -> { };
-            return anaphoraFinder;
+            EnglishAnaphoraResolver anaphoraResolver = new EnglishAnaphoraResolver(splitter, tokenizer, tagger, pointArbitrator, anaphoraFinder);
+            anaphoraResolver.afterSplit = this.afterSplit != null ? this.afterSplit : o -> { };
+            anaphoraResolver.afterTokenize = this.afterTokenize != null ? this.afterTokenize : o -> { };
+            anaphoraResolver.afterTag = this.afterTag != null ? this.afterTag : o -> { };
+            anaphoraResolver.afterPoints = this.afterPoints != null ? this.afterPoints : o -> { };
+            return anaphoraResolver;
         }
     }
 
     @Override
-    public void analyze(String textForAnalysis) {
+    public List<Sentence<EnglishTag>> resolve(String textForAnalysis) {
 
         List<Sentence<EnglishTag>> sentences = splitter.split(textForAnalysis);
         notifyAfterSplit(sentences);
@@ -101,20 +108,9 @@ public class EnglishAnaphoraResolver implements AnaphoraResolver {
 
         pointArbitrator.admitPoints(sentences);
         notifyAfterPoints(sentences);
-//
-//        // pronouns
-//        associatePronounsWithNouns(rawSentences, sentencesWithTokens);
-//
-//        System.out.println();
-//        // ToDo: ramka na 4 zdania itd.
-//
-//        // [kryterium zgodności rodzaju]
-//
-//        // Biorę pierwsze zdanie
-//        // punktuję tagi
-//
-//        // Punktuję drugie zdanie
 
+        anaphoraFinder.findAnaphora(sentences);
+        return sentences;
     }
 
     private void notifyAfterSplit(List<Sentence<EnglishTag>> sentences) {
@@ -129,90 +125,5 @@ public class EnglishAnaphoraResolver implements AnaphoraResolver {
     private void notifyAfterPoints(List<Sentence<EnglishTag>> sentences) {
         afterPoints.accept(sentences);
     }
-
-
-//    private void associatePronounsWithNouns(List<Sentence> sentences, Map<Sentence, List<Token>> sentencesWithTokens) {
-//
-//        sentences.forEach(analyzedSentenceInWhichPronounsAreAssociatedWithNouns -> {
-//            int analyzedSentenceIndex = analyzedSentenceInWhichPronounsAreAssociatedWithNouns.getIndex();
-//            List<Token> analyzedSentenceTokens = sentencesWithTokens.get(analyzedSentenceInWhichPronounsAreAssociatedWithNouns);
-//            List<Token> pronounsToAssociateWithNouns = getAllPronouns(analyzedSentenceTokens);
-//            List<Token> nounsAndPronouns = getAllNounsAndPronounsToAnalyze(analyzedSentenceInWhichPronounsAreAssociatedWithNouns, sentences, sentencesWithTokens);
-//            Pair<Token, Integer> nounOrPronounWithMaxPoints = getNounOrPronounWithMaxPoints(nounsAndPronouns, analyzedSentenceIndex);
-//
-//            pronounsToAssociateWithNouns.forEach(pronoun -> {
-//                if (isNoun(nounOrPronounWithMaxPoints.getKey())) {
-//                    pronoun.setRoot(nounOrPronounWithMaxPoints.getKey());
-//                    pronoun.setPoints(nounOrPronounWithMaxPoints.getKey().getPoints() + nounOrPronounWithMaxPoints.getValue());
-//                }
-//                else if (isPronoun(nounOrPronounWithMaxPoints.getKey()) && nounOrPronounWithMaxPoints.getKey().hasRoot()) {
-//                    pronoun.setRoot(nounOrPronounWithMaxPoints.getKey().getRoot());
-//                    pronoun.setPoints(nounOrPronounWithMaxPoints.getKey().getRoot().getPoints() + nounOrPronounWithMaxPoints.getValue());
-//                }
-//                else {
-//                    throw new IllegalStateException("nie powinno tak być :(");
-//                }
-//            });
-//        });
-//    }
-//
-//    private Pair<Token, Integer> getNounOrPronounWithMaxPoints(List<Token> nounsAndPronouns, int analyzedSentenceIndex) {
-//
-//        int maxPoints = 0;
-//        Token nounOrPronounWithMaxPoints = null;
-//
-//        for (Token currentNounOrPronoun : nounsAndPronouns) {
-//            int currentNounOrPronounPoints = currentNounOrPronoun.getPoints();
-//            switch (analyzedSentenceIndex - currentNounOrPronoun.getSentence().getIndex()) {
-//                case 0:
-//                    break;
-//                case 1:
-//                    currentNounOrPronounPoints /= 2;
-//                    break;
-//                case 2:
-//                    currentNounOrPronounPoints /= 4;
-//                    break;
-//                case 3:
-//                    currentNounOrPronounPoints /= 8;
-//                    break;
-//                default:
-//                    throw new IllegalStateException("nie powinno to się zdarzyć :O");
-//            }
-//            if (currentNounOrPronounPoints > maxPoints) {
-//                maxPoints = currentNounOrPronounPoints;
-//                nounOrPronounWithMaxPoints = currentNounOrPronoun;
-//            }
-//        }
-//        return new Pair<>(nounOrPronounWithMaxPoints, maxPoints);
-//    }
-//
-//    private List<Token> getAllPronouns(List<Token> tokens) {
-//        return tokens
-//                .stream()
-//                .filter(this::isPronoun)
-//                .collect(Collectors.toList());
-//    }
-//
-//    private boolean isPronoun(Token token) {
-//        return EnglishTag.PERSONAL_PRONOUN.equals(token.getTag())
-//                || EnglishTag.POSSESSIVE_PRONOUN.equals(token.getTag())
-//                || EnglishTag.POSSESSIVE_WH_PRONOUN.equals(token.getTag())
-//                || EnglishTag.WH_PRONOUN.equals(token.getTag());
-//    }
-//
-//    private List<Token> getAllNounsAndPronounsToAnalyze(Sentence sentence, List<Sentence> sentences, Map<Sentence, List<Token>> sentencesWithTokens) {
-//        int sentenceIndex = sentences.indexOf(sentence);
-//        List<Token> nounsAndPronounsToReturn = new ArrayList<>();
-//        // get tokens
-//        for (int i = sentenceIndex, j = 0; i >= 0 && j < 4; i--, j++) {
-//            nounsAndPronounsToReturn.addAll(sentencesWithTokens.get(sentences.get(i)));
-//        }
-//        // filter nouns and pronouns
-//        return nounsAndPronounsToReturn
-//                .stream()
-//                .filter(token -> isNoun(token) || isPronoun(token))
-//                .collect(Collectors.toList());
-//    }
-
 
 }

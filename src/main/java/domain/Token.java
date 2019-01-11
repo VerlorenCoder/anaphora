@@ -6,7 +6,7 @@ public final class Token<T> {
     private Sentence<T> sentence;
     private T tag ;
     private int points = 0;
-    private Token root;
+    private Token<EnglishTag> root;
 
 
     public Token(String value, Sentence<T> sentence) {
@@ -51,11 +51,15 @@ public final class Token<T> {
         this.points += points;
     }
 
-    public Token getRoot() {
+    public Token<EnglishTag> getRoot() {
         return root;
     }
 
-    public void setRoot(Token root) {
+    public void setRoot(Token<EnglishTag> root) {
         this.root = root;
+    }
+
+    public boolean hasRoot() {
+        return this.root != null;
     }
 }
