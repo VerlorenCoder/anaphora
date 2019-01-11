@@ -15,11 +15,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
-import logic.AnaphoraResolver;
-import logic.impl.EnglishAnaphoraResolver;
-import logic.impl.EnglishSplitter;
-import logic.impl.EnglishTagger;
-import logic.impl.SimpleTokenizer;
+import logic.*;
+import logic.impl.*;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
@@ -35,16 +32,17 @@ public class MainController {
     private static final String MENU_TEXT_FILE_LOCALIZATION = "/text/menu-text.txt";
     private static final String BUTTON_CHOICE_IMAGE_LOCALIZATION = "/images/star.png";
 
-    private EnglishSplitter englishSplitter = new EnglishSplitter();
-    private SimpleTokenizer tokenizer = new SimpleTokenizer();
-    private EnglishTagger englishTagger = new EnglishTagger();
+    private Splitter<EnglishTag> englishSplitter = new EnglishSplitter();
+    private Tokenizer tokenizer = new SimpleTokenizer();
+    private Tagger<EnglishTag> englishTagger = new EnglishTagger();
+    private PointArbitrator<EnglishTag> englishPointArbitrator = new EnglishPointArbitrator();
 
     private AnaphoraResolver englishAnaphoraResolver = EnglishAnaphoraResolver
-            .builder(englishSplitter, tokenizer, englishTagger)
+            .builder(englishSplitter, tokenizer, englishTagger, englishPointArbitrator)
             .afterSplit(sentences -> runInUserInterfaceThread(() -> displayEnglishSentences(sentences)))
             .afterTokenize(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
             .afterTag(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
-            .afterTag(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
+            .afterPoints(sentencesWithTokens -> runInUserInterfaceThread(() -> displayEnglishMorphologicalAnalysis(sentencesWithTokens)))
             .build();
 
     private ImageView activeMenuOption = null;
