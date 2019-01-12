@@ -17,13 +17,11 @@ import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import logic.*;
 import logic.impl.*;
+import pl.sgjp.morfeusz.Morfeusz;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,6 +34,7 @@ public class MainController {
     private Tokenizer tokenizer = new SimpleTokenizer();
     private Tagger<EnglishTag> englishTagger = new EnglishTagger();
     private PointArbitrator<EnglishTag> englishPointArbitrator = new EnglishPointArbitrator();
+    private Morfeusz morfeusz;
 
     private AnaphoraResolver englishAnaphoraResolver = EnglishAnaphoraResolver
             .builder(englishSplitter, tokenizer, englishTagger, englishPointArbitrator)
@@ -88,6 +87,12 @@ public class MainController {
         contactPane.setVisible(false);
 
         initializeMenu();
+
+        //=======================================
+
+        morfeusz = Morfeusz.createInstance();
+
+        //=======================================
     }
 
     private void initializeMenu() {
