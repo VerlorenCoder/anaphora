@@ -77,15 +77,6 @@ public class MainController {
 
     @FXML
     public void initialize() {
-        activePane = menuPane;
-        activeMenuOption = menuChoiceButton;
-
-        menuPane.setVisible(true);
-        algorithmEnglishPane.setVisible(false);
-        algorithmPolishPane.setVisible(false);
-        researchPane.setVisible(false);
-        contactPane.setVisible(false);
-
         initializeMenu();
 
         //=======================================
@@ -96,7 +87,21 @@ public class MainController {
     }
 
     private void initializeMenu() {
+        activePane = menuPane;
+        activeMenuOption = menuChoiceButton;
         prepareText(MENU_TEXT_FILE_LOCALIZATION, menuText);
+
+        menuPane.setVisible(true);
+        algorithmEnglishPane.setVisible(false);
+        algorithmPolishPane.setVisible(false);
+        researchPane.setVisible(false);
+        contactPane.setVisible(false);
+
+        menuButton.setDisable(false);
+        algorithmPolishButton.setDisable(false);
+        algorithmEnglishButton.setDisable(false);
+        researchButton.setDisable(true);
+        contactButton.setDisable(true);
     }
 
     private void prepareText(String message, Label label) {
@@ -369,7 +374,13 @@ public class MainController {
 
     @FXML
     void loadPolishText(ActionEvent event) {
+        File loadedFile = getFileUsingFileChooser();
+        String loadedText = getText(loadedFile);
+        setPolishText(loadedText);
+    }
 
+    private void setPolishText(String loadedText) {
+        polishText.setText(loadedText);
     }
 
     @FXML
