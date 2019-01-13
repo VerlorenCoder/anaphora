@@ -14,7 +14,7 @@ public class EnglishPointArbitrator implements PointArbitrator<EnglishTag> {
     private static int POINTS_FOR_PROPER_NOUN = 70;
     private static int POINTS_FOR_ACCUSATIVE_EMPHASIS = 50;
     private static int POINTS_FOR_INDIRECT_OBJECT_AND_OBLIQUE_COMPLEMENT_EMPHASIS = 40;
-    private static int POINTS_FOR_NON_ADVERBIAL_EMPHASIS = 40;
+    private static int POINTS_FOR_NON_ADVERBIAL_EMPHASIS = 50;
     private static int POINTS_FOR_HEAD_NOUN_EMPHASIS = 80;
 
     @Override
@@ -184,12 +184,20 @@ public class EnglishPointArbitrator implements PointArbitrator<EnglishTag> {
         return token.getTag().equals(EnglishTag.POSSESSIVE_PRONOUN);
     }
 
+    private boolean isPreposition(Token token) {
+        return token.getTag().equals(EnglishTag.PREPOSITION_OR_SUBORDINATING_CONJUNCTION);
+    }
+
     private boolean isNotDeterminer(Token token) {
         return !isDeterminer(token);
     }
 
     private boolean isOfWord(Token token) {
-        return "of".equals(token.getValue());
+        return "of".equals(token.getValue().toLowerCase());
+    }
+
+    private boolean isAndWord(Token token) {
+        return "and".equals(token.getValue().toLowerCase());
     }
 
     private void addPointsForIndirectObjectAndObliqueComplementEmphasis(Token token) {
@@ -226,8 +234,35 @@ public class EnglishPointArbitrator implements PointArbitrator<EnglishTag> {
 
 
     private boolean isHeadNounEmphasis(Token<EnglishTag> analyzedToken) {
-        // ToDo: Grześku, proszę to zaimplementować :)
-        return false;
+        if(isNoun(analyzedToken)) {
+            boolean possibleConjunction = false;
+
+            while(hasPreviousToken(analyzedToken)) {
+                Token<EnglishTag> previousToken = getPreviousToken(analyzedToken);
+
+                if(isAndWord(analyzedToken)) {
+                    possibleConjunction = true;
+                }
+
+                if(isNoun(previousToken)) {
+                    if(!possibleConjunction) {
+                        return true; // Another noun has been encountered; analyzed one was an independent noun
+                    }
+
+                    return isHeadNounEmphasis(previousToken);
+                }
+
+                if(isPreposition(previousToken)) {
+                    return false; // Is not independent (proceeded with "on"/"in"...)
+                }
+
+                analyzedToken = previousToken;
+            }
+
+            return true;
+        } else {
+            return false; // Is not noun
+        }
     }
 
     private void addPointForHeadNounEmphasis(Token token) {
