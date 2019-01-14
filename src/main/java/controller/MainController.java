@@ -17,13 +17,11 @@ import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import logic.*;
 import logic.impl.*;
+import pl.sgjp.morfeusz.Morfeusz;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +35,7 @@ public class MainController {
     private Tagger<EnglishTag> englishTagger = new EnglishTagger();
     private PointArbitrator<EnglishTag> englishPointArbitrator = new EnglishPointArbitrator();
     private AnaphoraFinder<EnglishTag> anaphoraFinder = new EnglishAnaphoraFinder();
+    private Morfeusz morfeusz;
 
     private AnaphoraResolver<EnglishTag> englishAnaphoraResolver = EnglishAnaphoraResolver
             .builder(englishSplitter, tokenizer, englishTagger, englishPointArbitrator, anaphoraFinder)
@@ -79,8 +78,19 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        initializeMenu();
+
+        //=======================================
+
+        morfeusz = Morfeusz.createInstance();
+
+        //=======================================
+    }
+
+    private void initializeMenu() {
         activePane = menuPane;
         activeMenuOption = menuChoiceButton;
+        prepareText(MENU_TEXT_FILE_LOCALIZATION, menuText);
 
         menuPane.setVisible(true);
         algorithmEnglishPane.setVisible(false);
@@ -88,11 +98,11 @@ public class MainController {
         researchPane.setVisible(false);
         contactPane.setVisible(false);
 
-        initializeMenu();
-    }
-
-    private void initializeMenu() {
-        prepareText(MENU_TEXT_FILE_LOCALIZATION, menuText);
+        menuButton.setDisable(false);
+        algorithmPolishButton.setDisable(false);
+        algorithmEnglishButton.setDisable(false);
+        researchButton.setDisable(true);
+        contactButton.setDisable(true);
     }
 
     private void prepareText(String message, Label label) {
@@ -391,7 +401,13 @@ public class MainController {
 
     @FXML
     void loadPolishText(ActionEvent event) {
+        File loadedFile = getFileUsingFileChooser();
+        String loadedText = getText(loadedFile);
+        setPolishText(loadedText);
+    }
 
+    private void setPolishText(String loadedText) {
+        polishText.setText(loadedText);
     }
 
     @FXML

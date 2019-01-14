@@ -46,7 +46,7 @@
                   <Insets top="10.0" />
                </VBox.margin>
             </HBox>
-            <HBox fx:id="algorithmEnglishButton" layoutX="10.0" layoutY="120.0" onMouseEntered="#algorithmEnglishMouseEntered" onMouseExited="#algorithmEnglishMouseExited" onMousePressed="#algorithmEnglishMousePressed" prefWidth="200.0" styleClass="left-option">
+            <HBox fx:id="algorithmEnglishButton" layoutX="10.0" layoutY="120.0" onMouseEntered="#algorithmEnglishMouseEntered" onMouseExited="#algorithmEnglishMouseExited" onMousePressed="#algorithmEnglishMousePressed" prefWidth="200.0">
                <children>
                   <ImageView fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -76,7 +76,7 @@
                         <Image url="@../images/option_algorithm.jpg" />
                      </image>
                   </ImageView>
-                  <Label disable="true" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Algorytm [PL]" textFill="WHITE">
+                  <Label maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Algorytm [PL]" textFill="WHITE">
                      <font>
                         <Font name="Book Antiqua" size="23.0" />
                      </font>
@@ -99,7 +99,7 @@
                         <Image url="@../images/option_research.jpg" />
                      </image>
                   </ImageView>
-                  <Label disable="true" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Badania" textFill="WHITE">
+                  <Label maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Badania" textFill="WHITE">
                      <font>
                         <Font name="Book Antiqua" size="23.0" />
                      </font>
@@ -122,7 +122,7 @@
                         <Image url="@../images/option_contact.jpg" />
                      </image>
                   </ImageView>
-                  <Label disable="true" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Kontakt" textFill="WHITE">
+                  <Label maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="60.0" prefWidth="200.0" styleClass="left-option" text="Kontakt" textFill="WHITE">
                      <font>
                         <Font name="Book Antiqua" size="23.0" />
                      </font>
