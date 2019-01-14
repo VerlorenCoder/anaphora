@@ -1,9 +1,10 @@
 package logic;
 
-import domain.Token;
+import domain.Sentence;
+
 import java.util.List;
 
-public interface Tagger {
+public interface Tagger<T> {
 
-    void addTags(List<Token> tokens);
+    void tag(List<Sentence<T>> sentences);
 }

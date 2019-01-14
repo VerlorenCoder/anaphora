@@ -1,15 +1,19 @@
 package domain;
 
-public class Token {
+public final class Token<T> {
 
     private String value;
-    private Tag tag ;
-    private Sentence sentence;
+    private Sentence<T> sentence;
+    private T tag ;
     private int points = 0;
+    private Token<EnglishTag> root;
 
-    public static Builder builder() {
-        return new Builder();
+
+    public Token(String value, Sentence<T> sentence) {
+        this.value = value;
+        this.sentence = sentence;
     }
+
 
     public String getValue() {
         return value;
@@ -19,22 +23,20 @@ public class Token {
         this.value = value;
     }
 
-    public Tag getTag() {
-        return tag;
-    }
-
-    public void setTag(Tag tag) {
-        this.tag = tag;
-    }
-
-    public Sentence getSentence() {
-
+    public Sentence<T> getSentence() {
         return sentence;
     }
 
-    public void setSentence(Sentence sentence) {
-
+    public void setSentence(Sentence<T> sentence) {
         this.sentence = sentence;
+    }
+
+    public T getTag() {
+        return tag;
+    }
+
+    public void setTag(T tag) {
+        this.tag = tag;
     }
 
     public int getPoints() {
@@ -49,35 +51,15 @@ public class Token {
         this.points += points;
     }
 
-    public static class Builder {
+    public Token<EnglishTag> getRoot() {
+        return root;
+    }
 
-        private String value;
-        private Tag tag;
-        private Sentence sentence;
+    public void setRoot(Token<EnglishTag> root) {
+        this.root = root;
+    }
 
-        private Builder() { }
-
-        public Builder value(String value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder tag(Tag tag) {
-            this.tag = tag;
-            return this;
-        }
-
-        public Builder sentence(Sentence sentence) {
-            this.sentence = sentence;
-            return this;
-        }
-
-        public Token build() {
-            Token token = new Token();
-            token.setTag(tag);
-            token.setValue(value);
-            token.setSentence(sentence);
-            return token;
-        }
+    public boolean hasRoot() {
+        return this.root != null;
     }
 }
