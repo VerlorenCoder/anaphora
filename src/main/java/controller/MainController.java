@@ -1,6 +1,6 @@
 package controller;
 
-import domain.EnglishTag;
+import domain.english.EnglishTag;
 import domain.Sentence;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;

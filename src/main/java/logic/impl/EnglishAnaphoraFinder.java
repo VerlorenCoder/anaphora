@@ -1,11 +1,16 @@
 package logic.impl;
 
-import domain.EnglishTag;
 import domain.Sentence;
 import domain.Token;
+import domain.english.Destination;
+import domain.english.EnglishPronoun;
+import domain.english.EnglishTag;
+import domain.english.Number;
 import logic.AnaphoraFinder;
+import service.EnglishNounsDatabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,55 +20,133 @@ public class EnglishAnaphoraFinder implements AnaphoraFinder<EnglishTag> {
     public void findAnaphora(List<Sentence<EnglishTag>> sentences) {
 
         sentences.forEach(analyzedSentenceInWhichPronounsAreAssociatedWithNouns -> {
+
             List<Token<EnglishTag>> pronounsToAssociateWithNouns = getAllPronouns(analyzedSentenceInWhichPronounsAreAssociatedWithNouns);
-            TokenWithCalculatedPoints nounOrPronounWithMaxPoints = getNounOrPronounWithMaxPoints(analyzedSentenceInWhichPronounsAreAssociatedWithNouns, sentences);
+
+//            TokenWithCalculatedPoints nounOrPronounWithMaxPoints = getNounOrPronounWithMaxPoints(analyzedSentenceInWhichPronounsAreAssociatedWithNouns, sentences);
+            List<TokenWithCalculatedPoints> nounsAndPronounsWithCalculatedPointsDesc = getTokensWithCalculatedPointsDesc(analyzedSentenceInWhichPronounsAreAssociatedWithNouns, sentences);
 
             pronounsToAssociateWithNouns.forEach(pronoun -> {
-                if (isNoun(nounOrPronounWithMaxPoints.getToken())) {
-                    pronoun.setRoot(nounOrPronounWithMaxPoints.getToken());
-                    pronoun.setPoints(nounOrPronounWithMaxPoints.getToken().getPoints() + nounOrPronounWithMaxPoints.getCalculatedPoints());
-                }
-                else if (isPronoun(nounOrPronounWithMaxPoints.getToken()) && nounOrPronounWithMaxPoints.getToken().hasRoot()) {
-                    pronoun.setRoot(nounOrPronounWithMaxPoints.getToken().getRoot());
-                    pronoun.setPoints(nounOrPronounWithMaxPoints.getToken().getRoot().getPoints() + nounOrPronounWithMaxPoints.getCalculatedPoints());
-                }
-                else {
-                    throw new IllegalStateException("nie powinno tak być :(");
+
+                TokenWithCalculatedPoints matchingNounOrPronounWithMaxPoints = findFirstMatchingNounOrPronoun(nounsAndPronounsWithCalculatedPointsDesc, pronoun);
+
+
+                if(!nounsAndPronounsWithCalculatedPointsDesc.isEmpty()) {
+
+                   if(isNoun(matchingNounOrPronounWithMaxPoints.getToken())) {
+                        pronoun.setRoot(matchingNounOrPronounWithMaxPoints.getToken());
+                        pronoun.setPoints(matchingNounOrPronounWithMaxPoints.getToken().getPoints() + matchingNounOrPronounWithMaxPoints.getCalculatedPoints());
+                    }
+                    else if(isPronoun(matchingNounOrPronounWithMaxPoints.getToken()) && matchingNounOrPronounWithMaxPoints.getToken().hasRoot()) {
+                        pronoun.setRoot(matchingNounOrPronounWithMaxPoints.getToken().getRoot());
+                        pronoun.setPoints(matchingNounOrPronounWithMaxPoints.getToken().getRoot().getPoints() + matchingNounOrPronounWithMaxPoints.getCalculatedPoints());
+                    }
+                    else {
+                        throw new IllegalStateException("nie powinno tak być :(");
+                    }
                 }
             });
         });
     }
 
+    private TokenWithCalculatedPoints findFirstMatchingNounOrPronoun(List<TokenWithCalculatedPoints> nounsAndPronounsWithCalculatedPointsDesc, Token<EnglishTag> pronoun) {
+        Number[] pronounPossibleNumbers = EnglishPronoun.fromValue(pronoun.getValue()).getNumbers();
+        Destination[] pronounPossibleDestinations = EnglishPronoun.fromValue(pronoun.getValue()).getDestinations();
 
-    private TokenWithCalculatedPoints getNounOrPronounWithMaxPoints(Sentence<EnglishTag> analyzedSentence, List<Sentence<EnglishTag>> sentences) {
+        if (nounsAndPronounsWithCalculatedPointsDesc == null || nounsAndPronounsWithCalculatedPointsDesc.size() == 0) {
+            return null;
+        }
+
+        for (TokenWithCalculatedPoints nounOrPronoun : nounsAndPronounsWithCalculatedPointsDesc) {
+            List<Number> nounOrPronounPossibleNumbers = new ArrayList<>();
+            List<Destination> nounOrPronounPossibleDestinations = new ArrayList<>();
+            if (isNoun(nounOrPronoun.getToken())) {
+               nounOrPronounPossibleNumbers = EnglishNounsDatabase.getPossibleNumbersOf(nounOrPronoun.getToken().getValue());
+               nounOrPronounPossibleDestinations = EnglishNounsDatabase.getPossibleDestinationsOf(nounOrPronoun.getToken().getValue());
+            }
+            else if (isPronoun(nounOrPronoun.getToken())) {
+               nounOrPronounPossibleNumbers = EnglishNounsDatabase.getPossibleNumbersOf(nounOrPronoun.getToken().getRoot().getValue());
+               nounOrPronounPossibleDestinations = EnglishNounsDatabase.getPossibleDestinationsOf(nounOrPronoun.getToken().getRoot().getValue());
+            }
+            else {
+               System.out.println("Coś poszło nie tak :(");
+            }
+
+            if (hasCommonPart(nounOrPronounPossibleNumbers, pronounPossibleNumbers) && hasCommonPart(nounOrPronounPossibleDestinations, pronounPossibleDestinations)) {
+                return nounOrPronoun;
+            }
+        }
+
+        return nounsAndPronounsWithCalculatedPointsDesc.get(0);
+    }
+
+    private <K> boolean hasCommonPart(List<K> array1, K[] array2) {
+        return array1
+                .stream()
+                .anyMatch(e1 -> Arrays.asList(array2).contains(e1));
+    }
+
+
+    private List<TokenWithCalculatedPoints> getTokensWithCalculatedPointsDesc(Sentence<EnglishTag> analyzedSentence, List<Sentence<EnglishTag>> sentences) {
+
         List<Token<EnglishTag>> nounsAndPronounsToAnalyze = getAllNounsAndPronounsToAnalyze(analyzedSentence, sentences);
-        int maxPoints = 0;
-        Token<EnglishTag> nounOrPronounWithMaxPoints = null;
+        List<TokenWithCalculatedPoints> tokensWithCalculatedPointsDescToReturn = new ArrayList<>();
 
         for (Token<EnglishTag> currentNounOrPronoun : nounsAndPronounsToAnalyze) {
             int currentNounOrPronounPoints = currentNounOrPronoun.getPoints();
             switch (sentences.indexOf(analyzedSentence) - sentences.indexOf(currentNounOrPronoun.getSentence())) {
-                case 0:
-                    break;
                 case 1:
-                    currentNounOrPronounPoints /= 2;
                     break;
                 case 2:
-                    currentNounOrPronounPoints /= 4;
+                    currentNounOrPronounPoints /= 2;
                     break;
                 case 3:
+                    currentNounOrPronounPoints /= 4;
+                    break;
+                case 4:
                     currentNounOrPronounPoints /= 8;
                     break;
                 default:
                     throw new IllegalStateException("nie powinno to się zdarzyć :O");
             }
-            if (currentNounOrPronounPoints > maxPoints) {
-                maxPoints = currentNounOrPronounPoints;
-                nounOrPronounWithMaxPoints = currentNounOrPronoun;
-            }
+            tokensWithCalculatedPointsDescToReturn.add(new TokenWithCalculatedPoints(currentNounOrPronoun, currentNounOrPronounPoints));
         }
-        return new TokenWithCalculatedPoints(nounOrPronounWithMaxPoints, maxPoints);
+
+        return tokensWithCalculatedPointsDescToReturn
+                .stream().filter(t -> t.calculatedPoints > 0)
+                .sorted((o1, o2) -> o2.calculatedPoints - o1.calculatedPoints)
+                .collect(Collectors.toList());
     }
+
+//    private @Nullable TokenWithCalculatedPoints getNounOrPronounWithMaxPoints(Sentence<EnglishTag> analyzedSentence, List<Sentence<EnglishTag>> sentences) {
+//        List<Token<EnglishTag>> nounsAndPronounsToAnalyze = getAllNounsAndPronounsToAnalyze(analyzedSentence, sentences);
+//        int maxPoints = 0;
+//        Token<EnglishTag> nounOrPronounWithMaxPoints = null;
+//
+//        for (Token<EnglishTag> currentNounOrPronoun : nounsAndPronounsToAnalyze) {
+//            int currentNounOrPronounPoints = currentNounOrPronoun.getPoints();
+//            switch (sentences.indexOf(analyzedSentence) - sentences.indexOf(currentNounOrPronoun.getSentence())) {
+//                case 1:
+//                    break;
+//                case 2:
+//                    currentNounOrPronounPoints /= 2;
+//                    break;
+//                case 3:
+//                    currentNounOrPronounPoints /= 4;
+//                    break;
+//                case 4:
+//                    currentNounOrPronounPoints /= 8;
+//                    break;
+//                default:
+//                    throw new IllegalStateException("nie powinno to się zdarzyć :O");
+//            }
+//            if (currentNounOrPronounPoints > maxPoints) {
+//                maxPoints = currentNounOrPronounPoints;
+//                nounOrPronounWithMaxPoints = currentNounOrPronoun;
+//            }
+//        }
+//        return new TokenWithCalculatedPoints(nounOrPronounWithMaxPoints, maxPoints);
+//    }
 
     private List<Token<EnglishTag>> getAllPronouns(Sentence<EnglishTag> sentence) {
         return sentence
@@ -85,7 +168,7 @@ public class EnglishAnaphoraFinder implements AnaphoraFinder<EnglishTag> {
         // get all tokens from up to 4 previous sentences
         int sentenceIndex = sentences.indexOf(sentence);
         List<Token<EnglishTag>> nounsAndPronounsToReturn = new ArrayList<>();
-        for (int i = sentenceIndex, j = 0; i >= 0 && j < 4; i--, j++) {
+        for (int i = sentenceIndex - 1, j = 0; i >= 0 && j < 4; i--, j++) {
             nounsAndPronounsToReturn.addAll(sentences.get(i).getTokens());
         }
         // filter nouns and pronouns

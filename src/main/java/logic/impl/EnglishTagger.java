@@ -1,7 +1,7 @@
 package logic.impl;
 
 import com.sun.istack.internal.Nullable;
-import domain.EnglishTag;
+import domain.english.EnglishTag;
 import domain.Sentence;
 import domain.Token;
 import logic.Tagger;

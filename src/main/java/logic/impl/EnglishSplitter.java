@@ -1,6 +1,6 @@
 package logic.impl;
 
-import domain.EnglishTag;
+import domain.english.EnglishTag;
 import domain.Sentence;
 import logic.Splitter;
 import opennlp.tools.sentdetect.SentenceDetector;
