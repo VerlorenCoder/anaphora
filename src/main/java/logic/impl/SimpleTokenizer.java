@@ -43,6 +43,6 @@ public class SimpleTokenizer implements Tokenizer {
     }
 
     private String purgePunctuation(String rawToken) {
-        return rawToken.replaceAll(PURGE_REGEX, EMPTY);
+        return rawToken.replaceAll(PURGE_REGEX, EMPTY).trim();
     }
 }

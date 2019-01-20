@@ -65,8 +65,8 @@ public class EnglishAnaphoraFinder implements AnaphoraFinder<EnglishTag> {
                nounOrPronounPossibleDestinations = EnglishNounsDatabase.getPossibleDestinationsOf(nounOrPronoun.getToken().getValue());
             }
             else if (isPronoun(nounOrPronoun.getToken())) {
-               nounOrPronounPossibleNumbers = EnglishNounsDatabase.getPossibleNumbersOf(nounOrPronoun.getToken().getRoot().getValue());
-               nounOrPronounPossibleDestinations = EnglishNounsDatabase.getPossibleDestinationsOf(nounOrPronoun.getToken().getRoot().getValue());
+               nounOrPronounPossibleNumbers = Arrays.asList(EnglishPronoun.fromValue(nounOrPronoun.getToken().getValue()).getNumbers());
+               nounOrPronounPossibleDestinations = Arrays.asList(EnglishPronoun.fromValue(nounOrPronoun.getToken().getValue()).getDestinations());
             }
             else {
                System.out.println("Coś poszło nie tak :(");
@@ -197,20 +197,12 @@ public class EnglishAnaphoraFinder implements AnaphoraFinder<EnglishTag> {
             this.calculatedPoints = calculatedPoints;
         }
 
-        public Token<EnglishTag> getToken() {
+        Token<EnglishTag> getToken() {
             return token;
         }
 
-        public void setToken(Token<EnglishTag> token) {
-            this.token = token;
-        }
-
-        public int getCalculatedPoints() {
+        int getCalculatedPoints() {
             return calculatedPoints;
-        }
-
-        public void setCalculatedPoints(int calculatedPoints) {
-            this.calculatedPoints = calculatedPoints;
         }
     }
 }

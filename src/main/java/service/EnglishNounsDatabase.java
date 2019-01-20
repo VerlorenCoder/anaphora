@@ -16,13 +16,13 @@ public final class EnglishNounsDatabase {
     private static Map<String, String> nounTypesByNounsDatabase;
 
     static {
-        String csvFile = "C:\\Users\\Jakub\\Documents\\Projects\\anaphora\\src\\main\\resources\\dictionary\\english-nouns.csv";
+        String csvFile = "/dictionary/english-nouns.csv";
         String separator = ",";
         String line;
 
         Map<String, String> nounTypesByNouns = new HashMap<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(EnglishNounsDatabase.class.getResource(csvFile).getFile()))) {
             System.out.println("Fetching all nouns from csv file " + csvFile);
             while ((line = br.readLine()) != null) {
                 String[] record = line.split(separator);
