@@ -426,9 +426,7 @@ public class MainController {
     }
 
     private void displayPolishMorphologicalAnalysisText(List<PolishSentence> sentences) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        String text = sentences
+         String text = sentences
                 .stream()
                 .flatMap(sentence -> sentence.getTokens().stream())
                 .map(token -> new StringBuilder()
@@ -460,6 +458,32 @@ public class MainController {
         polishSentences.setText(stringBuilder.toString());
     }
 
+    private void displayPolishOutput(List<PolishSentence> sentences) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(PolishSentence sentence : sentences) {
+
+            int currentLexemIndex = -1;
+            for(PolishToken token : sentence.getTokens()) {
+                if(token.getLexemIndex() == currentLexemIndex) {
+                    continue;
+                }
+
+                stringBuilder
+                        .append(token.getWord())
+                        .append(" ")
+                        .append(!token.getRoot().equals("") ? ("(" + token.getRoot() + ") ") : "");
+
+                currentLexemIndex = token.getLexemIndex();
+            }
+        }
+
+        String text = stringBuilder.toString().replace(" .", ".");
+        text = text.replace(" ,", ",");
+
+        polishOutput.setText(text);
+    }
+
     @FXML
     void analyzePolishText(ActionEvent event) {
         clearPreviouslyPolishData();
@@ -467,9 +491,11 @@ public class MainController {
 
         PolishAnaphoraResolver polishAnaphoraResolver = new PolishAnaphoraResolver();
         List<PolishSentence> sentences = polishAnaphoraResolver.resolve(textForAnalysis);
+        sentences = polishAnaphoraResolver.algorithm(sentences);
 
         displayPolishSentences(sentences);
         displayPolishMorphologicalAnalysisText(sentences);
+        displayPolishOutput(sentences);
     }
 
     private void runInUserInterfaceThread(Runnable task) {

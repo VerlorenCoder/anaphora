@@ -4,6 +4,8 @@ public class PolishToken {
     private String name;
     private String word;
     private String tags;
+    private String root = "";
+    private int lexemIndex;
     private int index;
     private int sentenceNumber;
     private int points = 0;
@@ -54,5 +56,21 @@ public class PolishToken {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public String getRoot() {
+        return root;
+    }
+
+    public void setRoot(String root) {
+        this.root = root;
+    }
+
+    public int getLexemIndex() {
+        return lexemIndex;
+    }
+
+    public void setLexemIndex(int lexemIndex) {
+        this.lexemIndex = lexemIndex;
     }
 }

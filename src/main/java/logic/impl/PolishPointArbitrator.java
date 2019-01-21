@@ -110,6 +110,10 @@ public class PolishPointArbitrator {
                         return;
                     }
 
+                    if(isPreposition(previousToken)) {
+                        return;
+                    }
+
                     token = previousToken;
                 }
 
@@ -134,6 +138,10 @@ public class PolishPointArbitrator {
                 }
 
                 isHeadNounEmphasis(tokens, token, evenMorePreviousToken);
+            }
+
+            if(isPreposition(previousToken)) {
+                return;
             }
 
             previousToken = evenMorePreviousToken;
