@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MainController {
@@ -426,6 +427,7 @@ public class MainController {
     }
 
     private void displayPolishMorphologicalAnalysisText(List<PolishSentence> sentences) {
+
          String text = sentences
                 .stream()
                 .flatMap(sentence -> sentence.getTokens().stream())
@@ -464,17 +466,23 @@ public class MainController {
         for(PolishSentence sentence : sentences) {
 
             int currentLexemIndex = -1;
+            String root = "";
             for(PolishToken token : sentence.getTokens()) {
                 if(token.getLexemIndex() == currentLexemIndex) {
+                    if(!Objects.equals(token.getRoot(), "")) {
+                        root = token.getRoot();
+                    }
+
                     continue;
                 }
 
                 stringBuilder
+                        .append(!root.equals("") ? ("(" + root + ") ") : "")
                         .append(token.getWord())
-                        .append(" ")
-                        .append(!token.getRoot().equals("") ? ("(" + token.getRoot() + ") ") : "");
+                        .append(" ");
 
                 currentLexemIndex = token.getLexemIndex();
+                root = "";
             }
         }
 
