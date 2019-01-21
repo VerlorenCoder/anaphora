@@ -3,6 +3,8 @@ package controller;
 import domain.english.EnglishTag;
 import domain.english.Sentence;
 import domain.polish.PolishSentence;
+import domain.polish.PolishTag;
+import domain.polish.PolishToken;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -424,13 +426,26 @@ public class MainController {
     }
 
     private void displayPolishMorphologicalAnalysisText(List<PolishSentence> sentences) {
-        String text = "";
+        StringBuilder stringBuilder = new StringBuilder();
 
-        polishMorphologicalAnalysis.setText(text);
+        String text = sentences
+                .stream()
+                .flatMap(sentence -> sentence.getTokens().stream())
+                .map(token -> new StringBuilder()
+                        .append("[")
+                        .append(token.getSentenceNumber())
+                        .append("][")
+                        .append(token.getIndex())
+                        .append("] ")
+                        .append(token.getWord())
+                        .append((token.getPoints() != 0) ? ("(" + token.getPoints() + ")") : "")
+                        .toString())
+                .collect(Collectors.joining("\n"));
+
+         polishMorphologicalAnalysis.setText(text);
     }
 
     private void displayPolishSentences(List<PolishSentence> sentences) {
-        String text = "";
         StringBuilder stringBuilder = new StringBuilder();
 
         for(int i = 0; i < sentences.size(); i++) {
