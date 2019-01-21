@@ -1,8 +1,8 @@
 package logic.impl;
 
 import domain.english.EnglishTag;
-import domain.Sentence;
-import domain.Token;
+import domain.english.Sentence;
+import domain.english.Token;
 import logic.PointArbitrator;
 
 import java.util.List;

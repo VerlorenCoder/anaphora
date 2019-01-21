@@ -1,6 +1,6 @@
 package logic;
 
-import domain.Sentence;
+import domain.english.Sentence;
 
 import java.util.List;
 

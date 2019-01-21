@@ -16,7 +16,7 @@ public final class EnglishNounsDatabase {
     private static Map<String, String> nounTypesByNounsDatabase;
 
     static {
-        String csvFile = "/dictionary/nglish-nouns.csv";
+        String csvFile = "/dictionary/english-nouns.csv";
         String separator = ",";
         String line;
 

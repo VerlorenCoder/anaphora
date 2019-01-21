@@ -2,8 +2,8 @@ package logic.impl;
 
 import com.sun.istack.internal.Nullable;
 import domain.english.EnglishTag;
-import domain.Sentence;
-import domain.Token;
+import domain.english.Sentence;
+import domain.english.Token;
 import logic.Tagger;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTagger;
