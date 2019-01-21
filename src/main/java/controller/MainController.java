@@ -1,7 +1,10 @@
 package controller;
 
 import domain.english.EnglishTag;
-import domain.Sentence;
+import domain.english.Sentence;
+import domain.polish.PolishSentence;
+import domain.polish.PolishTag;
+import domain.polish.PolishToken;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,7 +24,10 @@ import pl.sgjp.morfeusz.Morfeusz;
 import ui.MenuButtonNames;
 import ui.StageManager;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -309,7 +315,7 @@ public class MainController {
 
     @FXML
     void analyzeEnglishText() {
-        clearPreviouslyDisplayedData();
+        clearPreviouslyEnglishData();
         String textForAnalysis = getEnglishText();
         runInBackgroundThread(() ->  {
             List<Sentence<EnglishTag>> sentences = englishAnaphoraResolver.resolve(textForAnalysis);
@@ -320,13 +326,22 @@ public class MainController {
         });
     }
 
-    private void clearPreviouslyDisplayedData() {
+    private void clearPreviouslyEnglishData() {
         englishSentences.clear();
         englishMorphologicalAnalysis.clear();
     }
 
+    private void clearPreviouslyPolishData() {
+        polishSentences.clear();
+        polishMorphologicalAnalysis.clear();
+    }
+
     private String getEnglishText() {
         return englishText.getText();
+    }
+
+    private String getPolishText() {
+        return polishText.getText();
     }
 
     private <T> void displayEnglishSentences(List<Sentence<T>> sentences) {
@@ -410,9 +425,77 @@ public class MainController {
         polishText.setText(loadedText);
     }
 
+    private void displayPolishMorphologicalAnalysisText(List<PolishSentence> sentences) {
+         String text = sentences
+                .stream()
+                .flatMap(sentence -> sentence.getTokens().stream())
+                .map(token -> new StringBuilder()
+                        .append("[")
+                        .append(token.getSentenceNumber())
+                        .append("][")
+                        .append(token.getIndex())
+                        .append("] ")
+                        .append(token.getWord())
+                        .append((token.getPoints() != 0) ? ("(" + token.getPoints() + ")") : "")
+                        .toString())
+                .collect(Collectors.joining("\n"));
+
+         polishMorphologicalAnalysis.setText(text);
+    }
+
+    private void displayPolishSentences(List<PolishSentence> sentences) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(int i = 0; i < sentences.size(); i++) {
+            stringBuilder
+                    .append("[")
+                    .append(i)
+                    .append("] ")
+                    .append(sentences.get(i).getValue())
+                    .append("\n");
+        }
+
+        polishSentences.setText(stringBuilder.toString());
+    }
+
+    private void displayPolishOutput(List<PolishSentence> sentences) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(PolishSentence sentence : sentences) {
+
+            int currentLexemIndex = -1;
+            for(PolishToken token : sentence.getTokens()) {
+                if(token.getLexemIndex() == currentLexemIndex) {
+                    continue;
+                }
+
+                stringBuilder
+                        .append(token.getWord())
+                        .append(" ")
+                        .append(!token.getRoot().equals("") ? ("(" + token.getRoot() + ") ") : "");
+
+                currentLexemIndex = token.getLexemIndex();
+            }
+        }
+
+        String text = stringBuilder.toString().replace(" .", ".");
+        text = text.replace(" ,", ",");
+
+        polishOutput.setText(text);
+    }
+
     @FXML
     void analyzePolishText(ActionEvent event) {
+        clearPreviouslyPolishData();
+        String textForAnalysis = getPolishText();
 
+        PolishAnaphoraResolver polishAnaphoraResolver = new PolishAnaphoraResolver();
+        List<PolishSentence> sentences = polishAnaphoraResolver.resolve(textForAnalysis);
+        sentences = polishAnaphoraResolver.algorithm(sentences);
+
+        displayPolishSentences(sentences);
+        displayPolishMorphologicalAnalysisText(sentences);
+        displayPolishOutput(sentences);
     }
 
     private void runInUserInterfaceThread(Runnable task) {

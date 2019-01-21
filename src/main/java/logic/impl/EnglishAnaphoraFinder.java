@@ -1,7 +1,7 @@
 package logic.impl;
 
-import domain.Sentence;
-import domain.Token;
+import domain.english.Sentence;
+import domain.english.Token;
 import domain.english.Destination;
 import domain.english.EnglishPronoun;
 import domain.english.EnglishTag;

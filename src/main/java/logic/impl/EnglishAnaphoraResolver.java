@@ -1,7 +1,7 @@
 package logic.impl;
 
 import domain.english.EnglishTag;
-import domain.Sentence;
+import domain.english.Sentence;
 import logic.*;
 
 import java.util.List;
